@@ -113,6 +113,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
   const [resumedFlags, setResumedFlags] = useState<Record<string, boolean>>({});
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<Ticket | null>(null);
+  const [openActionsMenuFor, setOpenActionsMenuFor] = useState<string | null>(null);
   
   // Mettre à jour le token si le prop change
   useEffect(() => {
@@ -130,15 +131,19 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   }, [tokenProp]);
 
   async function loadTickets() {
-    if (!actualToken || actualToken.trim() === "") {
-      console.warn("Pas de token pour charger les tickets");
-      return;
+    let tokenToUse = actualToken;
+    if (!tokenToUse || tokenToUse.trim() === "") {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken || storedToken.trim() === "") {
+        console.warn("Pas de token pour charger les tickets");
+        return;
+      }
+      tokenToUse = storedToken;
     }
-    
     try {
       const res = await fetch("http://localhost:8000/tickets/me", {
         headers: {
-          Authorization: `Bearer ${actualToken}`,
+          Authorization: `Bearer ${tokenToUse}`,
         },
       });
       if (res.ok) {
@@ -225,10 +230,16 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   }
 
   function openEditModal(ticket: Ticket) {
-    if (ticket.status === "assigne_technicien" || ticket.status === "en_cours") {
-      alert("Le ticket est déjà en cours de traitement");
+    // Vérifier si le ticket peut être modifié (non assigné et statut en attente)
+    const isAssigned = ticket.technician !== null && ticket.technician !== undefined;
+    const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
+    const isBlocked = blockedStatuses.includes(ticket.status) || isAssigned;
+    
+    if (isBlocked) {
+      alert("Ce ticket est déjà assigné ou en cours de traitement. Modification impossible.");
       return;
     }
+    
     setEditTicketId(ticket.id);
     setEditTitle(ticket.title);
     setEditDescription(ticket.description || "");
@@ -271,26 +282,53 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   }
 
   async function handleDelete(ticket: Ticket) {
-    if (ticket.status === "assigne_technicien" || ticket.status === "en_cours") {
-      alert("Le ticket est déjà en cours de traitement");
+    // Vérifier si le ticket peut être supprimé (non assigné et statut en attente)
+    const isAssigned = ticket.technician !== null && ticket.technician !== undefined;
+    const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
+    const isBlocked = blockedStatuses.includes(ticket.status) || isAssigned;
+    
+    if (isBlocked) {
+      alert("Ce ticket est déjà assigné ou en cours de traitement. Suppression impossible.");
       return;
     }
-    if (!actualToken) return;
+    
+    let tokenToUse = actualToken;
+    if (!tokenToUse || tokenToUse.trim() === "") {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken || storedToken.trim() === "") {
+        alert("Erreur d'authentification : veuillez vous reconnecter");
+        return;
+      }
+      tokenToUse = storedToken;
+    }
     try {
       const res = await fetch(`http://localhost:8000/tickets/${ticket.id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${actualToken}`,
+          Authorization: `Bearer ${tokenToUse}`,
         },
       });
       if (res.ok || res.status === 204) {
+        // Supprimer le ticket de la liste immédiatement
         setTickets(prev => prev.filter(t => t.id !== ticket.id));
+        // Recharger la liste pour s'assurer de la synchronisation
+        await loadTickets();
+        await loadUnreadCount();
+        await loadNotifications();
+        alert("Ticket supprimé avec succès");
       } else if (res.status === 403) {
         const errText = await res.text();
         alert(errText || "Le ticket est déjà en cours de traitement");
+      } else if (res.status === 404) {
+        // Le ticket n'existe plus, le retirer de la liste
+        setTickets(prev => prev.filter(t => t.id !== ticket.id));
+      } else {
+        const errText = await res.text();
+        alert(errText || "Erreur lors de la suppression du ticket");
       }
     } catch (err) {
       console.error("Erreur lors de la suppression du ticket:", err);
+      alert("Erreur lors de la suppression du ticket. Veuillez réessayer.");
     }
   }
 
@@ -314,6 +352,24 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     } catch (err) {
       console.error("Erreur lors du marquage de la notification comme lue:", err);
     }
+  }
+
+  async function clearAllNotifications() {
+    try {
+      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+      if (actualToken && actualToken.trim() !== "" && unreadIds.length > 0) {
+        await Promise.all(
+          unreadIds.map((id) =>
+            fetch(`http://localhost:8000/notifications/${id}/read`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${actualToken}` },
+            })
+          )
+        );
+      }
+    } catch {}
+    setNotifications([]);
+    setUnreadCount(0);
   }
 
   function handleLogout() {
@@ -592,21 +648,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<string>("");
+  const [dashboardSearch, setDashboardSearch] = useState<string>("");
+  const [dashboardStatusFilter, setDashboardStatusFilter] = useState<string>("");
+  const [dashboardPriorityFilter, setDashboardPriorityFilter] = useState<string>("");
   const [selectedFilterValue, setSelectedFilterValue] = useState<string>("");
-
-
-  // Fonction pour naviguer vers une section de statut
-  function handleStatusClick(status: string) {
-    setSelectedStatus(status);
-    setActiveSection("tickets-by-status");
-    setSearchFilter("");
-    setSelectedCharacteristic("");
-    setSelectedFilterValue("");
-    // Scroll vers le haut pour voir la section de filtrage
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-
+ 
   // Fonction pour obtenir les valeurs uniques selon la caractéristique, en respectant les filtres déjà appliqués
   function getUniqueValues(characteristic: string, currentStatus?: string | null, currentFilterValue?: string, currentChar?: string): string[] {
     const values = new Set<string>();
@@ -688,7 +734,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   // Fonction pour obtenir le libellé d'un statut
   function getStatusLabel(status: string): string {
     switch (status) {
-      case "en_attente_analyse": return "En attente d'analyse";
+      case "en_attente_analyse": return "En attente d'assignation";
       case "assigne_technicien": return "Assigné au technicien";
       case "en_cours": return "En cours";
       case "resolu": return "Résolu";
@@ -949,6 +995,35 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             color: "white"
           }}>Déconnexion</div>
         </div>
+        
+        {/* Bottom user block in sidebar */}
+        <div style={{ marginTop: "auto", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              background: "#3b82f6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: 600
+            }}>
+              {(userInfo?.full_name || "Utilisateur").charAt(0).toUpperCase()}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ color: "white", fontSize: "14px" }}>
+                {userInfo?.full_name || "Utilisateur"}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981" }}></div>
+                <div style={{ color: "white", fontSize: "12px" }}>En ligne</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -998,119 +1073,72 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             {/* Separator */}
             <div style={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.2)", margin: "0 8px" }}></div>
 
-            {/* Chat Icon - Simple speech bubble */}
+            {/* Chat Icon - DSI style */}
             <div
               style={{
-                width: "40px",
-                height: "40px",
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            color: "white",
-                cursor: "pointer",
-                borderRadius: "4px",
-                transition: "background 0.2s ease"
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-          }}
-          >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </div>
-
-            {/* Separator */}
-            <div style={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.2)", margin: "0 8px" }}></div>
-
-            {/* Bell Icon with Notification - Trudesk style */}
-          <div 
-            onClick={() => setShowNotifications(!showNotifications)}
-            style={{ 
-                width: "40px",
-                height: "40px",
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              color: "white",
-                cursor: "pointer",
-                borderRadius: "4px",
-              position: "relative",
-                transition: "background 0.2s ease"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-            }}
-          >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-              {/* Notification Badge - Trudesk style (top right) */}
-            {unreadCount > 0 && (
-              <span style={{
-                position: "absolute",
-                  top: "4px",
-                  right: "4px",
-                  minWidth: "16px",
-                  height: "16px",
-                background: "#ef4444",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
+                width: "24px",
+                height: "24px",
+                display: "flex", 
+                alignItems: "center", 
                 justifyContent: "center",
-                  fontSize: "10px",
-                fontWeight: "bold",
                 color: "white",
-                  padding: "0 3px",
-                  border: "2px solid #1e293b"
-              }}>
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </div>
+                cursor: "pointer"
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor"/>
+                <path d="M19 13a2 2 0 0 1-2 2H5l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor" opacity="0.6" transform="translate(2, 2)"/>
+              </svg>
+            </div>
 
             {/* Separator */}
             <div style={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.2)", margin: "0 8px" }}></div>
 
-            {/* User Name and Avatar - Trudesk style */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "8px" }}>
-              <div style={{ fontSize: "14px", color: "white" }}>
-              {userInfo?.full_name || "Utilisateur"}
-              </div>
-              <div style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.15)",
-                display: "flex",
-                alignItems: "center",
+            {/* Bell Icon with Notification - DSI style */}
+            <div 
+              onClick={() => setShowNotifications(!showNotifications)}
+              style={{ 
+                width: "24px",
+                height: "24px",
+                display: "flex", 
+                alignItems: "center", 
                 justifyContent: "center",
+                color: "white",
+                cursor: "pointer",
                 position: "relative"
-              }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                {/* Online Status Indicator - Trudesk style (green circle with white border) */}
-              <div style={{
-                position: "absolute",
-                bottom: "0",
-                right: "0",
-                  width: "10px",
-                  height: "10px",
-                background: "#10b981",
-                borderRadius: "50%",
-                  border: "2px solid white"
-              }}></div>
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="currentColor"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="currentColor"/>
+              </svg>
+              {unreadCount > 0 && (
+                <span style={{
+                  position: "absolute",
+                  top: "-5px",
+                  right: "-5px",
+                  minWidth: "18px",
+                  height: "18px",
+                  background: "#ef4444",
+                  borderRadius: "50%",
+                  border: "2px solid #1e293b",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  color: "white",
+                  padding: "0 4px"
+                }}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </div>
-              </div>
+
+            {/* Separator */}
+            <div style={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.2)", margin: "0 8px" }}></div>
+
+            {/* User block removed from top bar per request */}
           </div>
         </div>
 
@@ -1150,31 +1178,20 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 style={{ 
                   position: "relative",
                   display: "flex",
-                  alignItems: "center", 
+                  flexDirection: "column",
+                  alignItems: "flex-start", 
                   justifyContent: "space-between",
-                  padding: "14px 16px",
+                  padding: "18px 20px",
                   borderRadius: "12px",
-                  background: "#f8fafc",
+                  background: "#f1f5f9",
                   border: "1px solid #e5e7eb",
-                  minHeight: "64px"
+                  minHeight: "120px"
                 }}
               >
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#fde68a", borderRadius: "12px 0 0 12px" }}></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#fde68a" }}></div>
-                  <span style={{ fontSize: "15px", color: "#374151" }}>En attente d'assignation</span>
-                </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>
-                    {statusCounts.en_attente_analyse}
-                  </span>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#fff7ed", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-                      <path d="M3 7l3-4h12l3 4" />
-                    </svg>
-                  </div>
-                </div>
+                <span style={{ fontSize: "15px", color: "#374151" }}>En attente d'assignation</span>
+                <span style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a" }}>
+                  {statusCounts.en_attente_analyse}
+                </span>
               </div>
 
               {/* En cours */}
@@ -1182,29 +1199,18 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 style={{
                   position: "relative",
                   display: "flex", 
-                  alignItems: "center", 
+                  flexDirection: "column",
+                  alignItems: "flex-start", 
                   justifyContent: "space-between",
-                  padding: "14px 16px",
+                  padding: "18px 20px",
                   borderRadius: "12px",
-                  background: "#f8fafc",
+                  background: "#fffbeb",
                   border: "1px solid #e5e7eb",
-                  minHeight: "64px"
+                  minHeight: "120px"
                 }}
               >
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#fdba74", borderRadius: "12px 0 0 12px" }}></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#fdba74" }}></div>
-                  <span style={{ fontSize: "15px", color: "#374151" }}>En cours</span>
-                </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>{statusCounts.en_cours}</span>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#fff7ed", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 6v6l4 2" />
-                    </svg>
-                  </div>
-                </div>
+                <span style={{ fontSize: "15px", color: "#374151" }}>En cours</span>
+                <span style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a" }}>{statusCounts.en_cours}</span>
               </div>
 
               {/* Résolu */}
@@ -1212,28 +1218,18 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 style={{ 
                   position: "relative",
                   display: "flex",
-                  alignItems: "center",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
                   justifyContent: "space-between",
-                  padding: "14px 16px",
+                  padding: "18px 20px",
                   borderRadius: "12px",
-                  background: "#f8fafc",
+                  background: "#f0fdf4",
                   border: "1px solid #e5e7eb",
-                  minHeight: "64px"
+                  minHeight: "120px"
                 }}
               >
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#a7f3d0", borderRadius: "12px 0 0 12px" }}></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#a7f3d0" }}></div>
-                  <span style={{ fontSize: "15px", color: "#374151" }}>Résolu</span>
-                </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>{statusCounts.resolu}</span>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#ecfdf5", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                  </div>
-                </div>
+                <span style={{ fontSize: "15px", color: "#374151" }}>Résolu</span>
+                <span style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a" }}>{statusCounts.resolu}</span>
               </div>
 
               {/* (Cartes supplémentaires supprimées) */}
@@ -1539,7 +1535,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             {t.status === "resolu" && <div style={{ width: "8px", height: "8px", borderRadius: "50%", border: "2px solid #6b7280" }}></div>}
                             {t.status === "rejete" && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#ef4444" }}></div>}
                             {t.status === "cloture" && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#6b7280" }}></div>}
-                            {t.status === "en_attente_analyse" ? "En attente d'analyse" :
+                            {t.status === "en_attente_analyse" ? "En attente d'assignation" :
                              t.status === "assigne_technicien" ? "Assigné au technicien" :
                              t.status === "en_cours" ? "En cours" :
                              t.status === "resolu" ? "Résolu" :
@@ -1624,6 +1620,67 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 {activeSection === "dashboard" ? "Mes Tickets Récents" : "Mes Tickets"}
               </h3>
             </div>
+            {activeSection === "dashboard" && (
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "12px", 
+                marginBottom: "16px"
+              }}>
+                <input
+                  type="text"
+                  placeholder="Rechercher par ticket, titre ou description..."
+                  value={dashboardSearch}
+                  onChange={(e) => setDashboardSearch(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "10px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    background: "white"
+                  }}
+                />
+                <select
+                  value={dashboardStatusFilter}
+                  onChange={(e) => setDashboardStatusFilter(e.target.value)}
+                  style={{ 
+                    padding: "10px 12px", 
+                    border: "1px solid #d1d5db", 
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    background: "white",
+                    minWidth: "160px"
+                  }}
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="en_attente_analyse">En attente d'assignation</option>
+                  <option value="assigne_technicien">Assigné au technicien</option>
+                  <option value="en_cours">En cours</option>
+                  <option value="resolu">Résolu</option>
+                  <option value="rejete">Rejeté</option>
+                  <option value="cloture">Clôturé</option>
+                </select>
+                <select
+                  value={dashboardPriorityFilter}
+                  onChange={(e) => setDashboardPriorityFilter(e.target.value)}
+                  style={{ 
+                    padding: "10px 12px", 
+                    border: "1px solid #d1d5db", 
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    background: "white",
+                    minWidth: "140px"
+                  }}
+                >
+                  <option value="">Toutes les priorités</option>
+                  <option value="critique">Critique</option>
+                  <option value="haute">Haute</option>
+                  <option value="moyenne">Moyenne</option>
+                  <option value="faible">Faible</option>
+                </select>
+              </div>
+            )}
             {/* Tickets Table */}
             <div style={{ background: "white", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -1645,7 +1702,18 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   </td>
                 </tr>
               ) : (
-                [...tickets]
+                (activeSection === "dashboard"
+                  ? tickets.filter((t) => {
+                    const search = dashboardSearch.trim().toLowerCase();
+                    const matchesSearch = !search || 
+                      t.number.toString().includes(search) ||
+                      t.title.toLowerCase().includes(search) ||
+                      (t.description || "").toLowerCase().includes(search);
+                    const matchesStatus = !dashboardStatusFilter || t.status === dashboardStatusFilter;
+                    const matchesPriority = !dashboardPriorityFilter || t.priority === dashboardPriorityFilter;
+                    return matchesSearch && matchesStatus && matchesPriority;
+                  })
+                  : tickets)
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .slice(0, activeSection === "dashboard" ? 5 : tickets.length)
                   .map((t) => (
@@ -1663,12 +1731,12 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                         whiteSpace: "nowrap",
                         display: "inline-block"
                       }}>
-                        {t.status === "en_attente_analyse" ? "En attente d'analyse" :
+                        {t.status === "en_attente_analyse" ? "En attente d'assignation" :
                          t.status === "assigne_technicien" ? "Assigné au technicien" :
                          t.status === "en_cours" ? "En cours" :
                          t.status === "resolu" ? "Résolu" :
                          t.status === "rejete" ? "Rejeté" :
-                       t.status === "cloture" ? "Clôturé" : t.status}
+                         t.status === "cloture" ? "Clôturé" : t.status}
                       </span>
                     </td>
                     <td style={{ padding: "16px" }}>
@@ -1687,90 +1755,123 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                       {formatDate(t.assigned_at || t.created_at)}
                     </td>
                     <td style={{ padding: "16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", position: "relative" }}>
                         <button
-                          onClick={(e) => { e.stopPropagation(); loadTicketDetails(t.id); }}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setOpenActionsMenuFor(openActionsMenuFor === t.id ? null : t.id);
+                          }}
                           disabled={loading}
-                          title="Voir détails"
-                          aria-label="Voir détails"
+                          title="Actions"
+                          aria-label="Actions"
                           style={{
                             width: 28,
                             height: 28,
                             display: "inline-flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "transparent",
-                            border: "1px solid #475569",
-                            borderRadius: 6,
+                            background: "transparent",
+                            border: "none",
+                            borderRadius: 0,
                             cursor: "pointer",
                             color: "#475569",
                             backgroundImage:
-                              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\'><path d=\'M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z\' stroke=\'%23475569\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'none\' stroke=\'%23475569\' stroke-width=\'2\'/></svg>")',
+                              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='5' r='2' fill='%23475569'/><circle cx='12' cy='12' r='2' fill='%23475569'/><circle cx='12' cy='19' r='2' fill='%23475569'/></svg>\")",
                             backgroundRepeat: "no-repeat",
                             backgroundPosition: "center",
                             backgroundSize: "18px 18px"
                           }}
-                        >
-                          {/* icon as background image */}
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
-                          disabled={loading}
-                          title="Modifier"
-                          aria-label="Modifier"
-                          style={{
-                            width: 28,
-                            height: 28,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "transparent",
-                            border: "1px solid #1d4ed8",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                            color: "#1d4ed8",
-                            backgroundImage:
-                              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%231d4ed8' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'/><path fill='%231d4ed8' d='M20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/></svg>\")",
-                            backgroundRepeat: "no-repeat",
-                            backgroundPosition: "center",
-                            backgroundSize: "18px 18px"
-                          }}
-                        >
-                          {/* icon as background image */}
-                        </button>
-                        <button
-                          disabled={loading}
-                          title="Supprimer"
-                          aria-label="Supprimer"
-                          style={{
-                            width: 28,
-                            height: 28,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "transparent",
-                            border: "1px solid #b91c1c",
-                            borderRadius: 6,
-                            cursor: loading ? "not-allowed" : "pointer",
-                            color: "#b91c1c",
-                            backgroundImage:
-                              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23b91c1c' d='M6 7h12l-1 12H7L6 7z'/><path fill='%23b91c1c' d='M9 7V5h6v2'/><rect x='9' y='10' width='2' height='6' fill='%23b91c1c'/><rect x='13' y='10' width='2' height='6' fill='%23b91c1c'/></svg>\")",
-                            backgroundRepeat: "no-repeat",
-                            backgroundPosition: "center",
-                            backgroundSize: "18px 18px"
-                          }}
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            if (loading) return;
-                            if (t.status === "assigne_technicien" || t.status === "en_cours") {
-                              alert("Le ticket est déjà en cours de traitement");
-                              return;
-                            }
-                            setConfirmDeleteTicket(t);
-                          }}
-                        >
-                          {/* icon as background image */}
-                        </button>
+                        />
+                        {openActionsMenuFor === t.id && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 36,
+                              right: 0,
+                              background: "white",
+                              border: "1px solid #e5e7eb",
+                              borderRadius: 8,
+                              boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                              minWidth: 160,
+                              zIndex: 10
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => { loadTicketDetails(t.id); setOpenActionsMenuFor(null); }}
+                              disabled={loading}
+                              style={{ 
+                                width: "100%", 
+                                padding: "10px 12px", 
+                                background: "transparent", 
+                                border: "none", 
+                                textAlign: "left", 
+                                cursor: "pointer",
+                                color: "#111827",
+                                fontSize: "14px"
+                              }}
+                            >
+                              Voir détails
+                            </button>
+                            <button
+                              onClick={() => { 
+                                const isAssigned = t.technician !== null && t.technician !== undefined;
+                                const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
+                                const isBlocked = blockedStatuses.includes(t.status) || isAssigned;
+                                
+                                if (isBlocked) {
+                                  alert("Ce ticket est déjà assigné ou en cours de traitement. Modification impossible.");
+                                  setOpenActionsMenuFor(null);
+                                  return;
+                                }
+                                openEditModal(t); 
+                                setOpenActionsMenuFor(null); 
+                              }}
+                              disabled={loading}
+                              style={{ 
+                                width: "100%", 
+                                padding: "10px 12px", 
+                                background: "transparent", 
+                                border: "none", 
+                                textAlign: "left", 
+                                cursor: "pointer",
+                                color: "#111827",
+                                fontSize: "14px"
+                              }}
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => { 
+                                if (loading) return;
+                                const isAssigned = t.technician !== null && t.technician !== undefined;
+                                const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
+                                const isBlocked = blockedStatuses.includes(t.status) || isAssigned;
+                                
+                                if (isBlocked) {
+                                  alert("Ce ticket est déjà assigné ou en cours de traitement. Suppression impossible.");
+                                  setOpenActionsMenuFor(null);
+                                  return;
+                                }
+                                setConfirmDeleteTicket(t); 
+                                setOpenActionsMenuFor(null);
+                              }}
+                              disabled={loading}
+                              style={{ 
+                                width: "100%", 
+                                padding: "10px 12px", 
+                                background: "transparent", 
+                                border: "none", 
+                                textAlign: "left", 
+                                cursor: "pointer",
+                                color: "#111827",
+                                fontSize: "14px"
+                              }}
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        )}
                         {t.status === "resolu" ? (
                           <div style={{ display: "flex", gap: "4px" }}>
                             <button
@@ -2420,24 +2521,39 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                   Notifications
                 </h3>
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    cursor: "pointer",
-                    color: "#999",
-                    padding: "0",
-                    width: "24px",
-                    height: "24px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}
-                >
-                  ×
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <button
+                    onClick={clearAllNotifications}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#1f6feb",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      padding: "6px 8px"
+                    }}
+                  >
+                    Effacer les notifications
+                  </button>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: "24px",
+                      cursor: "pointer",
+                      color: "#999",
+                      padding: "0",
+                      width: "24px",
+                      height: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
               <div style={{
                 flex: 1,

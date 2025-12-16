@@ -25,6 +25,7 @@ class EmailService:
         self.sender_name = os.getenv("SENDER_NAME", "Système de Gestion des Tickets")
         self.use_tls = os.getenv("USE_TLS", "true").lower() == "true"
         self.verify_ssl = os.getenv("VERIFY_SSL", "true").lower() == "true"
+        self.app_base_url = os.getenv("APP_BASE_URL", "http://localhost:5173")
         self.email_enabled = os.getenv("EMAIL_ENABLED", "true").lower() == "true"
     
     def send_email(
@@ -150,15 +151,89 @@ Cordialement,
         </ul>
     </div>
     <p>Veuillez vous connecter à l'application pour analyser et assigner ce ticket.</p>
+    <div style="margin: 20px 0;">
+        <a href="{self.app_base_url}/" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Ouvrir l’application</a>
+    </div>
     <p>Cordialement,<br>{self.sender_name}</p>
 </body>
 </html>
 """
         
         return self.send_email(recipient_emails, subject, body, html_body)
+
+    def send_ticket_created_notification_with_actions(
+        self,
+        ticket_id: str,
+        ticket_number: int,
+        ticket_title: str,
+        creator_name: str,
+        recipient_email: str,
+        recipient_role: str
+    ) -> bool:
+        subject = f"Nouveau ticket #{ticket_number} créé: {ticket_title}"
+        body = f"""
+Bonjour,
+
+Un nouveau ticket a été créé dans le système de gestion des tickets.
+
+Détails du ticket :
+• Numéro : #{ticket_number}
+• Titre : {ticket_title}
+• Créateur : {creator_name}
+
+Veuillez vous connecter à l'application pour analyser et assigner ce ticket.
+
+Cordialement,
+{self.sender_name}
+"""
+        app_link = f"{self.app_base_url}/"
+        if recipient_role == "DSI":
+            # DSI reçoit 3 boutons : Assigner, Déléguer, et Ouvrir l'application
+            assign_link = f"{self.app_base_url}/dashboard/dsi?ticket={ticket_id}&action=assign"
+            delegate_link = f"{self.app_base_url}/dashboard/dsi?ticket={ticket_id}&action=delegate"
+            actions_html = f"""
+            <div style="margin: 20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="{assign_link}" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Assigner à un technicien</a>
+                <a href="{delegate_link}" style="background:#0ea5e9;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Déléguer à un adjoint</a>
+                <a href="{app_link}" style="background:#6c757d;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Ouvrir l'application</a>
+            </div>
+            """
+        else:
+            # Secrétaire DSI, Adjoint DSI et Admin : seulement le bouton "Assigner à un technicien"
+            if recipient_role == "Admin":
+                role_path = "/dashboard/dsi"
+            else:
+                role_path = "/dashboard/secretary"
+            assign_link = f"{self.app_base_url}{role_path}?ticket={ticket_id}&action=assign"
+            actions_html = f"""
+            <div style="margin: 20px 0;">
+                <a href="{assign_link}" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Assigner à un technicien</a>
+            </div>
+            """
+        html_body = f"""
+<html>
+<body>
+    <h2>Nouveau ticket créé</h2>
+    <p>Bonjour,</p>
+    <p>Un nouveau ticket a été créé dans le système de gestion des tickets.</p>
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <p><strong>Détails du ticket :</strong></p>
+        <ul>
+            <li><strong>Numéro :</strong> #{ticket_number}</li>
+            <li><strong>Titre :</strong> {ticket_title}</li>
+            <li><strong>Créateur :</strong> {creator_name}</li>
+        </ul>
+    </div>
+    {actions_html}
+    <p>Cordialement,<br>{self.sender_name}</p>
+</body>
+</html>
+"""
+        return self.send_email([recipient_email], subject, body, html_body)
     
     def send_ticket_assigned_notification(
         self,
+        ticket_id: str,
         ticket_number: int,
         ticket_title: str,
         technician_email: str,
@@ -205,6 +280,9 @@ Cordialement,
 {self.sender_name}
 """
         
+        action_link = f"{self.app_base_url}/dashboard/technician?ticket={ticket_id}"
+        
+        # Construire le HTML progressivement
         html_body = f"""
 <html>
 <body>
@@ -229,16 +307,149 @@ Cordialement,
         <p style="background-color: #fff; padding: 10px; border-left: 3px solid #007bff;">{notes}</p>
 """
         
-        html_body += """
+        html_body += f"""
+    </div>
+    <div style="margin: 20px 0;">
+        <a href="{action_link}" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Ouvrir l'application</a>
     </div>
     <p>Veuillez vous connecter à l'application pour prendre en charge ce ticket.</p>
-    <p>Cordialement,<br>{}</p>
+    <p>Cordialement,<br>{self.sender_name}</p>
 </body>
 </html>
-""".format(self.sender_name)
+"""
         
         return self.send_email([technician_email], subject, body, html_body)
+    
+    def send_ticket_assigned_to_creator_notification(
+        self,
+        ticket_id: str,
+        ticket_number: int,
+        ticket_title: str,
+        creator_email: str,
+        creator_name: str,
+        technician_name: str
+    ) -> bool:
+        """
+        Envoie une notification au créateur du ticket lorsqu'il est assigné à un technicien
+        
+        Args:
+            ticket_id: ID du ticket
+            ticket_number: Numéro du ticket
+            ticket_title: Titre du ticket
+            creator_email: Email du créateur
+            creator_name: Nom du créateur
+            technician_name: Nom du technicien assigné
+        
+        Returns:
+            True si l'email a été envoyé avec succès
+        """
+        subject = f"Votre ticket #{ticket_number} a été assigné à un technicien"
+        
+        body = f"""
+Bonjour {creator_name},
 
+Votre ticket a été assigné à un technicien et sera traité prochainement.
+
+Détails du ticket :
+• Numéro : #{ticket_number}
+• Titre : {ticket_title}
+• Technicien assigné : {technician_name}
+
+Vous serez notifié lorsque le ticket sera résolu.
+
+Cordialement,
+{self.sender_name}
+"""
+        
+        action_link = f"{self.app_base_url}/dashboard/user?ticket={ticket_id}"
+        html_body = f"""
+<html>
+<body>
+    <h2>Ticket assigné</h2>
+    <p>Bonjour {creator_name},</p>
+    <p>Votre ticket a été assigné à un technicien et sera traité prochainement.</p>
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <p><strong>Détails du ticket :</strong></p>
+        <ul>
+            <li><strong>Numéro :</strong> #{ticket_number}</li>
+            <li><strong>Titre :</strong> {ticket_title}</li>
+            <li><strong>Technicien assigné :</strong> {technician_name}</li>
+        </ul>
+    </div>
+    <p>Vous serez notifié lorsque le ticket sera résolu.</p>
+    <div style="margin: 20px 0;">
+        <a href="{action_link}" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Voir le ticket</a>
+    </div>
+    <p>Cordialement,<br>{self.sender_name}</p>
+</body>
+</html>
+"""
+        
+        return self.send_email([creator_email], subject, body, html_body)
+    
+    def send_ticket_created_to_creator_notification(
+        self,
+        ticket_id: str,
+        ticket_number: int,
+        ticket_title: str,
+        creator_email: str,
+        creator_name: str
+    ) -> bool:
+        """
+        Envoie une notification au créateur lorsqu'il crée un ticket
+        
+        Args:
+            ticket_id: ID du ticket
+            ticket_number: Numéro du ticket
+            ticket_title: Titre du ticket
+            creator_email: Email du créateur
+            creator_name: Nom du créateur
+        
+        Returns:
+            True si l'email a été envoyé avec succès
+        """
+        subject = f"Votre ticket #{ticket_number} a été créé avec succès"
+        
+        body = f"""
+Bonjour {creator_name},
+
+Votre ticket a été créé avec succès et sera traité prochainement.
+
+Détails du ticket :
+• Numéro : #{ticket_number}
+• Titre : {ticket_title}
+
+Vous serez notifié lorsque le ticket sera assigné à un technicien.
+
+Cordialement,
+{self.sender_name}
+"""
+        
+        action_link = f"{self.app_base_url}/dashboard/user?ticket={ticket_id}"
+        html_body = f"""
+<html>
+<body>
+    <h2>Ticket créé</h2>
+    <p>Bonjour {creator_name},</p>
+    <p>Votre ticket a été créé avec succès et sera traité prochainement.</p>
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <p><strong>Détails du ticket :</strong></p>
+        <ul>
+            <li><strong>Numéro :</strong> #{ticket_number}</li>
+            <li><strong>Titre :</strong> {ticket_title}</li>
+        </ul>
+    </div>
+    <p>Vous serez notifié lorsque le ticket sera assigné à un technicien.</p>
+    <div style="margin: 20px 0;">
+        <a href="{action_link}" style="background:#007bff;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;display:inline-block">Voir le ticket</a>
+    </div>
+    <p>Cordialement,<br>{self.sender_name}</p>
+</body>
+</html>
+"""
+        
+        return self.send_email([creator_email], subject, body, html_body)
+    
     def send_ticket_rejected_notification(
         self,
         ticket_number: int,

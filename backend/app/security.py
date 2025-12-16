@@ -22,8 +22,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Vérifie un mot de passe avec bcrypt"""
     try:
+        # S'assurer que le hash est bien une chaîne
+        if not hashed_password or not isinstance(hashed_password, str):
+            return False
+        
+        # Vérifier que le hash commence par $2b$ (format bcrypt)
+        if not hashed_password.startswith('$2'):
+            return False
+        
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-    except Exception:
+    except Exception as e:
+        # Logger l'erreur pour le débogage (en production, utiliser un vrai logger)
+        print(f"Erreur lors de la vérification du mot de passe: {e}")
         return False
 
 
@@ -50,8 +60,17 @@ def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]:
     user = get_user_by_username(db, username)
-    if not user or not verify_password(password, user.password_hash):
+    if not user:
         return None
+    
+    # Vérifier le statut de l'utilisateur (actif ou active)
+    if user.status and user.status.lower() not in ["actif", "active"]:
+        return None
+    
+    # Vérifier le mot de passe
+    if not verify_password(password, user.password_hash):
+        return None
+    
     return user
 
 

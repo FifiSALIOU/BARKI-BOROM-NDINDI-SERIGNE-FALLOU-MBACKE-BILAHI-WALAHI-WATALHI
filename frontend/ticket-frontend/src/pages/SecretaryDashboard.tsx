@@ -194,6 +194,26 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       console.error("Erreur lors du marquage de la notification comme lue:", err);
     }
   }
+  
+  async function clearAllNotifications() {
+    const confirmed = window.confirm("Confirmer l'effacement de toutes les notifications ?");
+    if (!confirmed) return;
+    try {
+      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+      if (token && token.trim() !== "" && unreadIds.length > 0) {
+        await Promise.all(
+          unreadIds.map((id) =>
+            fetch(`http://localhost:8000/notifications/${id}/read`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+        );
+      }
+    } catch {}
+    setNotifications([]);
+    setUnreadCount(0);
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -335,12 +355,22 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         setAssignmentNotes("");
         alert("Ticket assigné avec succès");
       } else {
-        const error = await res.json();
-        alert(`Erreur: ${error.detail || "Impossible d'assigner le ticket"}`);
+        let errorMessage = "Impossible d'assigner le ticket";
+        try {
+          const error = await res.json();
+          errorMessage = error.detail || error.message || errorMessage;
+        } catch (e) {
+          const errorText = await res.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        }
+        alert(`Erreur: ${errorMessage}`);
       }
     } catch (err) {
       console.error("Erreur assignation:", err);
-      alert("Erreur lors de l'assignation");
+      const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'assignation";
+      alert(`Erreur: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -3310,24 +3340,39 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
               <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                 Notifications
               </h3>
-              <button
-                onClick={() => setShowNotifications(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: "#999",
-                  padding: "0",
-                  width: "24px",
-                  height: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                ×
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <button
+                  onClick={clearAllNotifications}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#1f6feb",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: "6px 8px"
+                  }}
+                >
+                  Effacer les notifications
+                </button>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: "#999",
+                    padding: "0",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  ×
+                </button>
+              </div>
             </div>
             <div style={{
               flex: 1,

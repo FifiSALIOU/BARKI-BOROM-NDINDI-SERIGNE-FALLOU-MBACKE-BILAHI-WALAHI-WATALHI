@@ -74,14 +74,25 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage onLogin={setToken} />} />
         <Route path="/dashboard" element={getDashboard()} />
-        <Route path="/dashboard/user" element={<UserDashboard token={token || ""} />} />
-        <Route path="/dashboard/secretary" element={<SecretaryDashboard token={token || ""} />} />
-        <Route path="/dashboard/technician" element={<TechnicianDashboard token={token || ""} />} />
-        <Route path="/dashboard/dsi" element={<DSIDashboard token={token || ""} />} />
+        <Route
+          path="/dashboard/user"
+          element={token ? <UserDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/secretary"
+          element={token ? <SecretaryDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/technician"
+          element={token ? <TechnicianDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
       </Routes>
     </div>
   );
 }
 
 export default App;
-

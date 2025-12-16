@@ -57,9 +57,27 @@ def login_for_access_token(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect username or password, or account is inactive",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Vérifier que l'utilisateur a un rôle valide
+    if not user.role_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account has no role assigned",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Charger le rôle pour s'assurer qu'il existe
+    user.role = db.query(models.Role).filter(models.Role.id == user.role_id).first()
+    if not user.role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User role not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": str(user.id)}, expires_delta=access_token_expires

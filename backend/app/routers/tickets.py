@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 
 from .. import models, schemas
 from ..database import get_db
@@ -42,19 +43,25 @@ def create_ticket(
     db.commit()
     db.refresh(ticket)
     
-    # Créer une notification pour les Secrétaires/Adjoints DSI et DSI
-    # Récupérer tous les utilisateurs concernés (Secrétaire DSI, Adjoint DSI, DSI)
+    # Créer une notification pour les Secrétaires/Adjoints DSI, DSI et Admin
+    # Récupérer tous les utilisateurs concernés (Secrétaire DSI, Adjoint DSI, DSI, Admin)
+    # Ces rôles sont ceux qui peuvent assigner des tickets à des techniciens
     target_roles = db.query(models.Role).filter(
-        models.Role.name.in_(["Secrétaire DSI", "Adjoint DSI", "DSI"])
+        models.Role.name.in_(["Secrétaire DSI", "Adjoint DSI", "DSI", "Admin"])
     ).all()
     
     recipient_emails = []
     if target_roles:
         for role in target_roles:
-            users = db.query(models.User).filter(
-                models.User.role_id == role.id,
-                models.User.status == "actif"
-            ).all()
+            users = (
+                db.query(models.User)
+                .options(joinedload(models.User.role))
+                .filter(
+                    models.User.role_id == role.id,
+                    func.lower(models.User.status).in_(["actif", "active"])
+                )
+                .all()
+            )
             for user in users:
                 # Créer une notification dans la base de données
                 notification = models.Notification(
@@ -72,14 +79,59 @@ def create_ticket(
         
         db.commit()
         
-        # Envoyer un email de notification à tous les destinataires
-        if recipient_emails:
-            email_service.send_ticket_created_notification(
+        # Envoyer un email de notification personnalisé par rôle
+        try:
+            # Rechercher les utilisateurs à notifier (éviter doublons)
+            notified_users = []
+            for role in target_roles:
+                users = (
+                    db.query(models.User)
+                    .options(joinedload(models.User.role))
+                    .filter(
+                        models.User.role_id == role.id,
+                        func.lower(models.User.status).in_(["actif", "active"])
+                    )
+                    .all()
+                )
+                for user in users:
+                    # Éviter doublons par email
+                    if user.email and user.email.strip() and user.email not in [u.email for u in notified_users]:
+                        notified_users.append(user)
+            for user in notified_users:
+                email_service.send_ticket_created_notification_with_actions(
+                    ticket_id=str(ticket.id),
+                    ticket_number=ticket.number,
+                    ticket_title=ticket.title,
+                    creator_name=current_user.full_name,
+                    recipient_email=user.email,
+                    recipient_role=user.role.name if user.role else ""
+                )
+        except Exception as e:
+            print(f"[EMAIL] Erreur envoi notifications par rôle: {e}")
+    
+    # Créer une notification pour le créateur du ticket
+    creator_notification = models.Notification(
+        user_id=current_user.id,
+        type=models.NotificationType.TICKET_CREE,
+        ticket_id=ticket.id,
+        message=f"Votre ticket #{ticket.number} a été créé avec succès: {ticket.title}",
+        read=False
+    )
+    db.add(creator_notification)
+    db.commit()
+    
+    # Envoyer un email de confirmation au créateur
+    try:
+        if current_user.email and current_user.email.strip():
+            email_service.send_ticket_created_to_creator_notification(
+                ticket_id=str(ticket.id),
                 ticket_number=ticket.number,
                 ticket_title=ticket.title,
-                creator_name=current_user.full_name,
-                recipient_emails=list(set(recipient_emails))  # Supprimer les doublons
+                creator_email=current_user.email,
+                creator_name=current_user.full_name
             )
+    except Exception as e:
+        print(f"[EMAIL] Erreur envoi email créateur: {e}")
     
     # Charger les relations pour la réponse
     ticket = (
@@ -201,7 +253,15 @@ def edit_ticket(
     if ticket.creator_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    if ticket.technician_id is not None or ticket.status in [models.TicketStatus.ASSIGNE_TECHNICIEN, models.TicketStatus.EN_COURS]:
+    # Bloquer la modification si le ticket est assigné ou dans un statut bloqué
+    blocked_statuses = [
+        models.TicketStatus.ASSIGNE_TECHNICIEN,
+        models.TicketStatus.EN_COURS,
+        models.TicketStatus.CLOTURE,
+        models.TicketStatus.RESOLU,
+        models.TicketStatus.REJETE
+    ]
+    if ticket.technician_id is not None or ticket.status in blocked_statuses:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Le ticket est déjà en cours de traitement")
 
     if ticket_in.title is not None:
@@ -252,11 +312,30 @@ def delete_ticket(
     if ticket.creator_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    if ticket.technician_id is not None or ticket.status in [models.TicketStatus.ASSIGNE_TECHNICIEN, models.TicketStatus.EN_COURS]:
+    # Bloquer la suppression si le ticket est assigné ou dans un statut bloqué
+    blocked_statuses = [
+        models.TicketStatus.ASSIGNE_TECHNICIEN,
+        models.TicketStatus.EN_COURS,
+        models.TicketStatus.CLOTURE,
+        models.TicketStatus.RESOLU,
+        models.TicketStatus.REJETE
+    ]
+    if ticket.technician_id is not None or ticket.status in blocked_statuses:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Le ticket est déjà en cours de traitement")
 
-    db.delete(ticket)
-    db.commit()
+    # Supprimer les notifications liées au ticket avant de supprimer le ticket
+    try:
+        db.query(models.Notification).filter(models.Notification.ticket_id == ticket.id).delete()
+        # Les comments et history sont supprimés automatiquement grâce au cascade
+        db.delete(ticket)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[DELETE] Erreur lors de la suppression du ticket: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la suppression du ticket: {str(e)}"
+        )
 
 
 @router.put("/{ticket_id}/assign", response_model=schemas.TicketRead)
@@ -329,15 +408,34 @@ def assign_ticket(
     db.refresh(ticket)
     
     # Envoyer un email de notification au technicien
-    if technician.email and technician.email.strip():
-        email_service.send_ticket_assigned_notification(
-            ticket_number=ticket.number,
-            ticket_title=ticket.title,
-            technician_email=technician.email,
-            technician_name=technician.full_name,
-            priority=ticket.priority,
-            notes=assign_data.notes
-        )
+    try:
+        if technician.email and technician.email.strip():
+            email_service.send_ticket_assigned_notification(
+                ticket_id=str(ticket.id),
+                ticket_number=ticket.number,
+                ticket_title=ticket.title,
+                technician_email=technician.email,
+                technician_name=technician.full_name,
+                priority=ticket.priority,
+                notes=assign_data.notes
+            )
+    except Exception as e:
+        print(f"[EMAIL] Erreur envoi email technicien: {e}")
+    
+    # Envoyer un email de notification au créateur du ticket
+    try:
+        creator = db.query(models.User).filter(models.User.id == ticket.creator_id).first()
+        if creator and creator.email and creator.email.strip():
+            email_service.send_ticket_assigned_to_creator_notification(
+                ticket_id=str(ticket.id),
+                ticket_number=ticket.number,
+                ticket_title=ticket.title,
+                creator_email=creator.email,
+                creator_name=creator.full_name,
+                technician_name=technician.full_name
+            )
+    except Exception as e:
+        print(f"[EMAIL] Erreur envoi email créateur: {e}")
     
     # Charger les relations pour la réponse
     ticket = (
@@ -428,7 +526,7 @@ def reassign_ticket(
             user_id=old_technician_id,
             type=models.NotificationType.REASSIGNATION,
             ticket_id=ticket.id,
-            message=f"Le ticket #{ticket.number} a été réassigné à un autre technicien: {ticket.title}",
+            message=f"Le ticket #{ticket.number} ne vous est plus assigné: {ticket.title}",
             read=False
         )
         db.add(old_notification)
@@ -449,6 +547,7 @@ def reassign_ticket(
     # Envoyer un email de notification au nouveau technicien
     if technician.email and technician.email.strip():
         email_service.send_ticket_assigned_notification(
+            ticket_id=str(ticket.id),
             ticket_number=ticket.number,
             ticket_title=ticket.title,
             technician_email=technician.email,
@@ -824,6 +923,60 @@ def validate_ticket_resolution(
     db.refresh(ticket)
     
     # Charger les relations pour la réponse
+    ticket = (
+        db.query(models.Ticket)
+        .options(
+            joinedload(models.Ticket.creator),
+            joinedload(models.Ticket.technician)
+        )
+        .filter(models.Ticket.id == ticket.id)
+        .first()
+    )
+    return ticket
+
+@router.put("/{ticket_id}/delegate-adjoint", response_model=schemas.TicketRead)
+def delegate_to_adjoint(
+    ticket_id: UUID,
+    delegate_data: schemas.TicketDelegate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_role("DSI")),
+):
+    ticket = db.query(models.Ticket).filter(models.Ticket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found"
+        )
+    adjoint = db.query(models.User).filter(models.User.id == delegate_data.adjoint_id).first()
+    if not adjoint or not adjoint.role or adjoint.role.name != "Adjoint DSI":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Adjoint DSI not found"
+        )
+    old_status = ticket.status
+    ticket.technician_id = None
+    ticket.secretary_id = delegate_data.adjoint_id
+    if ticket.status != models.TicketStatus.EN_ATTENTE_ANALYSE:
+        ticket.status = models.TicketStatus.EN_ATTENTE_ANALYSE
+    history_reason = delegate_data.reason or ""
+    if delegate_data.notes:
+        history_reason = (history_reason + " | " + delegate_data.notes).strip(" |")
+    history = models.TicketHistory(
+        ticket_id=ticket.id,
+        old_status=old_status,
+        new_status=ticket.status,
+        user_id=current_user.id,
+        reason=history_reason or "Délégation au Adjoint DSI"
+    )
+    db.add(history)
+    notification = models.Notification(
+        user_id=delegate_data.adjoint_id,
+        type=models.NotificationType.TICKET_EN_ATTENTE,
+        ticket_id=ticket.id,
+        message=f"Ticket #{ticket.number} délégué par DSI: {ticket.title}",
+        read=False
+    )
+    db.add(notification)
+    db.commit()
+    db.refresh(ticket)
     ticket = (
         db.query(models.Ticket)
         .options(

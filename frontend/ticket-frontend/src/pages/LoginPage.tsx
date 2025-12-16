@@ -10,23 +10,31 @@ function LoginPage({ onLogin }: LoginPageProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (loading) return;
+    setLoading(true);
     try {
+      console.log("Connexion: démarrage");
+      const base = "http://127.0.0.1:8000";
       const body = new URLSearchParams();
       body.append("username", username);
       body.append("password", password);
+      body.append("grant_type", "password");
+      body.append("scope", "");
 
-      const res = await fetch("http://localhost:8000/auth/token", {
+      const res = await fetch(base + "/auth/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body,
       });
+      console.log("Réponse /auth/token:", res.status, res.statusText);
 
       if (!res.ok) {
         throw new Error("Identifiants invalides");
@@ -37,7 +45,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
       
       // Récupérer les infos de l'utilisateur pour connaître son rôle
       try {
-        const userRes = await fetch("http://localhost:8000/auth/me", {
+        const userRes = await fetch(base + "/auth/me", {
           headers: {
             Authorization: `Bearer ${data.access_token}`,
           },
@@ -60,7 +68,15 @@ function LoginPage({ onLogin }: LoginPageProps) {
         navigate("/dashboard");
       }, 100);
     } catch (err: any) {
-      setError(err.message ?? "Erreur de connexion");
+      const msg = err?.message ?? "Erreur de connexion";
+      // Message plus spécifique si le backend n'est pas joignable
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setError("Impossible de contacter le serveur. Vérifiez que le backend est démarré sur http://localhost:8000");
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -232,18 +248,19 @@ function LoginPage({ onLogin }: LoginPageProps) {
                 borderRadius: "8px",
                 fontSize: "16px",
                 fontWeight: "600",
-                cursor: "pointer",
+                cursor: loading ? "not-allowed" : "pointer",
                 transition: "background 0.2s ease",
                 boxShadow: "0 2px 4px rgba(59, 130, 246, 0.3)"
               }}
+              disabled={loading}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#2563eb";
+                if (!loading) e.currentTarget.style.background = "#2563eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "#3b82f6";
               }}
             >
-              Se connecter
+              {loading ? "Connexion..." : "Se connecter"}
             </button>
           </form>
         </div>
@@ -253,4 +270,3 @@ function LoginPage({ onLogin }: LoginPageProps) {
 }
 
 export default LoginPage;
-

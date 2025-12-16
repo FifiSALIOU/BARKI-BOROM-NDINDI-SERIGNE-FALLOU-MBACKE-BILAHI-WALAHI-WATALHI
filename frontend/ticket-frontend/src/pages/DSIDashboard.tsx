@@ -216,6 +216,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [reassignTicketId, setReassignTicketId] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState<boolean>(false);
   const [assignTicketId, setAssignTicketId] = useState<string | null>(null);
+  const [showDelegateModal, setShowDelegateModal] = useState<boolean>(false);
+  const [delegateTicketId, setDelegateTicketId] = useState<string | null>(null);
+  const [selectedAdjoint, setSelectedAdjoint] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState({
     openTickets: 0,
@@ -997,6 +1000,26 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       console.error("Erreur lors du marquage de la notification comme lue:", err);
     }
   }
+  
+  async function clearAllNotifications() {
+    const confirmed = window.confirm("Confirmer l'effacement de toutes les notifications ?");
+    if (!confirmed) return;
+    try {
+      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+      if (token && token.trim() !== "" && unreadIds.length > 0) {
+        await Promise.all(
+          unreadIds.map((id) =>
+            fetch(`http://localhost:8000/notifications/${id}/read`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+        );
+      }
+    } catch {}
+    setNotifications([]);
+    setUnreadCount(0);
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -1229,12 +1252,22 @@ function DSIDashboard({ token }: DSIDashboardProps) {
         setAssignTicketId(null);
         alert("Ticket assigné avec succès");
       } else {
-        const error = await res.json();
-        alert(`Erreur: ${error.detail || "Impossible d'assigner le ticket"}`);
+        let errorMessage = "Impossible d'assigner le ticket";
+        try {
+          const error = await res.json();
+          errorMessage = error.detail || error.message || errorMessage;
+        } catch (e) {
+          const errorText = await res.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        }
+        alert(`Erreur: ${errorMessage}`);
       }
     } catch (err) {
       console.error("Erreur assignation:", err);
-      alert("Erreur lors de l'assignation");
+      const errorMessage = err instanceof Error ? err.message : "Erreur lors de l'assignation";
+      alert(`Erreur: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -1338,6 +1371,56 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     setSelectedTechnician("");
     setAssignmentNotes("");
     setShowAssignModal(true);
+  }
+  function handleDelegateClick(ticketId: string) {
+    setDelegateTicketId(ticketId);
+    setSelectedAdjoint("");
+    setAssignmentNotes("");
+    setShowDelegateModal(true);
+  }
+  async function handleDelegate(ticketId: string) {
+    if (!selectedAdjoint) {
+      alert("Veuillez sélectionner un adjoint DSI");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:8000/tickets/${ticketId}/delegate-adjoint`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          adjoint_id: selectedAdjoint,
+          reason: assignmentNotes || undefined,
+          notes: assignmentNotes || undefined,
+        }),
+      });
+      if (res.ok) {
+        const ticketsRes = await fetch("http://localhost:8000/tickets/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (ticketsRes.ok) {
+          const ticketsData = await ticketsRes.json();
+          setAllTickets(ticketsData);
+        }
+        setSelectedAdjoint("");
+        setAssignmentNotes("");
+        setShowDelegateModal(false);
+        setDelegateTicketId(null);
+        alert("Ticket délégué à un adjoint avec succès");
+      } else {
+        const error = await res.json();
+        alert(`Erreur: ${error.detail || "Impossible de déléguer le ticket"}`);
+      }
+    } catch (err) {
+      alert("Erreur lors de la délégation");
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Fonction helper pour vérifier si l'utilisateur peut escalader
@@ -2573,6 +2656,15 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                       >
                         Assigner
                       </button>
+                      {userRole === "DSI" && (
+                        <button
+                          onClick={() => handleDelegateClick(t.id)}
+                          disabled={loading}
+                          style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#0ea5e9", color: "white", border: "none", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                        >
+                          Déléguer à un adjoint
+                        </button>
+                      )}
                       {canEscalate() && (
                         <button
                           onClick={() => handleEscalate(t.id)}
@@ -8789,24 +8881,39 @@ function DSIDashboard({ token }: DSIDashboardProps) {
               <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                 Notifications
               </h3>
-              <button
-                onClick={() => setShowNotifications(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: "#999",
-                  padding: "0",
-                  width: "24px",
-                  height: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                ×
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <button
+                  onClick={clearAllNotifications}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#1f6feb",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: "6px 8px"
+                  }}
+                >
+                  Effacer les notifications
+                </button>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: "#999",
+                    padding: "0",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  ×
+                </button>
+              </div>
             </div>
             <div style={{
               flex: 1,
@@ -9163,6 +9270,77 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                 }}
               >
                 {loading ? "Assignation..." : "Confirmer l'assignation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDelegateModal && delegateTicketId && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "white", padding: "24px", borderRadius: "8px", maxWidth: "600px", width: "90%", maxHeight: "90vh", overflowY: "auto" }}>
+            <h3 style={{ marginBottom: "16px", color: "#0ea5e9" }}>Déléguer à un adjoint DSI</h3>
+            {(() => {
+              const ticket = allTickets.find(t => t.id === delegateTicketId);
+              return ticket ? (
+                <div style={{ marginBottom: "20px", padding: "12px", background: "#f8f9fa", borderRadius: "4px" }}>
+                  <div style={{ marginBottom: "8px" }}>
+                    <strong>Ticket #{ticket.number}:</strong> {ticket.title}
+                  </div>
+                  <div style={{ fontSize: "14px", color: "#666" }}>
+                    Type: <strong>{ticket.type === "materiel" ? "Matériel" : "Applicatif"}</strong>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+                Sélectionner un adjoint DSI <span style={{ color: "#dc3545" }}>*</span>
+              </label>
+              <select
+                value={selectedAdjoint}
+                onChange={(e) => setSelectedAdjoint(e.target.value)}
+                style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "14px" }}
+              >
+                <option value="">Sélectionner un adjoint DSI</option>
+                {allUsers.filter((u: any) => u.role?.name === "Adjoint DSI").map((u: any) => (
+                  <option key={u.id} value={u.id}>
+                    {u.full_name} {u.agency ? `- ${u.agency}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+                Notes pour l’adjoint (optionnel)
+              </label>
+              <textarea
+                value={assignmentNotes}
+                onChange={(e) => setAssignmentNotes(e.target.value)}
+                placeholder="Instructions ou contexte pour l’adjoint..."
+                rows={3}
+                style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", fontSize: "14px", resize: "vertical" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => {
+                  setShowDelegateModal(false);
+                  setDelegateTicketId(null);
+                  setSelectedAdjoint("");
+                  setAssignmentNotes("");
+                }}
+                disabled={loading}
+                style={{ padding: "10px 20px", background: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500" }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => delegateTicketId && handleDelegate(delegateTicketId)}
+                disabled={loading || !selectedAdjoint}
+                style={{ padding: "10px 20px", background: "#0ea5e9", color: "white", border: "none", borderRadius: "4px", cursor: loading || !selectedAdjoint ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: loading || !selectedAdjoint ? 0.6 : 1 }}
+              >
+                {loading ? "Délégation..." : "Confirmer la délégation"}
               </button>
             </div>
           </div>

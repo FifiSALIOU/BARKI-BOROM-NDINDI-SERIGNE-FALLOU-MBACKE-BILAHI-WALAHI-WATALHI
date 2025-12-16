@@ -128,6 +128,26 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
       console.error("Erreur lors du marquage de la notification comme lue:", err);
     }
   }
+  
+  async function clearAllNotifications() {
+    const confirmed = window.confirm("Confirmer l'effacement de toutes les notifications ?");
+    if (!confirmed) return;
+    try {
+      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+      if (token && token.trim() !== "" && unreadIds.length > 0) {
+        await Promise.all(
+          unreadIds.map((id) =>
+            fetch(`http://localhost:8000/notifications/${id}/read`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+        );
+      }
+    } catch {}
+    setNotifications([]);
+    setUnreadCount(0);
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -1529,24 +1549,39 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                 Notifications
               </h3>
-              <button
-                onClick={() => setShowNotifications(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: "#999",
-                  padding: "0",
-                  width: "24px",
-                  height: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                ×
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <button
+                  onClick={clearAllNotifications}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#1f6feb",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: "6px 8px"
+                  }}
+                >
+                  Effacer les notifications
+                </button>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: "#999",
+                    padding: "0",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  ×
+                </button>
+              </div>
             </div>
             <div style={{
               flex: 1,

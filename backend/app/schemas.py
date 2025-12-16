@@ -101,6 +101,11 @@ class TicketAssign(BaseModel):
     reason: Optional[str] = None
     notes: Optional[str] = None  # Notes/instructions pour le technicien
 
+class TicketDelegate(BaseModel):
+    adjoint_id: UUID
+    reason: Optional[str] = None
+    notes: Optional[str] = None
+
 
 class TicketRead(TicketBase):
     id: UUID
