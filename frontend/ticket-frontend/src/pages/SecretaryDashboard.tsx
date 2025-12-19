@@ -431,29 +431,154 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       }));
   };
 
+  // Fonction helper pour obtenir uniquement les tickets de l'agence de l'adjoint connecté (pour les exports uniquement)
+  const getMyAgencyTicketsForExport = (): Ticket[] => {
+    // Si pas d'agence définie, retourner tous les tickets (comportement par défaut pour l'affichage)
+    if (!userInfo?.agency) {
+      console.warn("⚠️ Aucune agence définie pour l'utilisateur connecté. Utilisation de toutes les données.");
+      return allTickets;
+    }
+    
+    const userAgency = String(userInfo.agency).trim();
+    if (!userAgency) {
+      console.warn("⚠️ Agence de l'utilisateur est vide. Utilisation de toutes les données.");
+      return allTickets;
+    }
+    
+    const filteredTickets = allTickets.filter(ticket => {
+      const ticketAgency = String(ticket.creator?.agency || ticket.user_agency || "").trim();
+      // Comparaison insensible à la casse et aux espaces
+      const match = ticketAgency.toLowerCase() === userAgency.toLowerCase() && ticketAgency !== "";
+      return match;
+    });
+    
+    console.log(`📊 Filtrage par agence "${userAgency}": ${filteredTickets.length} ticket(s) trouvé(s) sur ${allTickets.length} total`);
+    
+    // Si aucun ticket trouvé, retourner tous les tickets pour éviter un export vide
+    if (filteredTickets.length === 0) {
+      console.warn("⚠️ Aucun ticket trouvé pour l'agence. Utilisation de toutes les données pour l'export.");
+      return allTickets;
+    }
+    
+    return filteredTickets;
+  };
+
+  // Fonctions filtrées pour les exports (uniquement pour l'adjoint)
+  const getRecurringTicketsHistoryForExport = () => {
+    const myTickets = getMyAgencyTicketsForExport();
+    const ticketGroups: { [key: string]: Ticket[] } = {};
+    
+    myTickets.forEach(ticket => {
+      if (ticket.title) {
+        const normalizedTitle = ticket.title.toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .trim();
+        const key = normalizedTitle.split(/\s+/).slice(0, 3).join(' ');
+        
+        if (!ticketGroups[key]) {
+          ticketGroups[key] = [];
+        }
+        ticketGroups[key].push(ticket);
+      }
+    });
+
+    return Object.entries(ticketGroups)
+      .filter(([_, tickets]) => tickets.length > 1)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([_, tickets]) => ({
+        titre: tickets[0].title,
+        occurrences: tickets.length,
+        dernier: tickets.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        })[0].created_at
+      }));
+  };
+
+  const getMostFrequentProblemsForExport = () => {
+    const myTickets = getMyAgencyTicketsForExport();
+    const ticketGroups: { [key: string]: { title: string; count: number } } = {};
+    
+    myTickets.forEach(ticket => {
+      if (ticket.title) {
+        const normalizedTitle = ticket.title.toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .trim();
+        const words = normalizedTitle.split(/\s+/).filter(w => w.length > 2);
+        if (words.length >= 3) {
+          const key = words.slice(0, Math.min(5, words.length)).join(' ');
+          
+          if (!ticketGroups[key]) {
+            ticketGroups[key] = { title: ticket.title, count: 0 };
+          }
+          ticketGroups[key].count += 1;
+        }
+      }
+    });
+
+    return Object.values(ticketGroups)
+      .filter(item => item.count >= 2)
+      .sort((a, b) => b.count - a.count)
+      .map(item => ({
+        problème: item.title,
+        occurrences: item.count
+      }));
+  };
+
+  const getProblematicApplicationsForExport = () => {
+    const myTickets = getMyAgencyTicketsForExport();
+    const typeCounts: { [key: string]: number } = {};
+    
+    myTickets.forEach(ticket => {
+      const type = ticket.type || 'autre';
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+
+    return Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => ({
+        application: type === 'materiel' ? 'Matériel' : type === 'applicatif' ? 'Applicatif' : type.charAt(0).toUpperCase() + type.slice(1),
+        tickets: count
+      }));
+  };
+
   // Fonctions d'export pour les rapports
   const exportProblemsHistoryToPDF = (reportType: string = "Problèmes récurrents") => {
     try {
       const doc = new jsPDF();
       doc.setFontSize(16);
       doc.text(`Rapport: ${reportType}`, 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Généré par: ${userInfo?.full_name || 'Utilisateur'}`, 14, 30);
+      if (userInfo?.agency) {
+        doc.text(`Agence: ${userInfo.agency}`, 14, 40);
+      }
       
-      const problems = getRecurringTicketsHistory();
-      const mostFrequent = getMostFrequentProblems();
-      const problematicApps = getProblematicApplications();
+      // Utiliser les mêmes données que l'affichage (filtrées par agence si possible)
+      const problems = getRecurringTicketsHistoryForExport();
+      const mostFrequent = getMostFrequentProblemsForExport();
+      const problematicApps = getProblematicApplicationsForExport();
       
-      if (problems.length > 0) {
+      // Si aucune donnée filtrée, utiliser les données affichées (pour éviter un export vide)
+      const problemsToUse = problems.length > 0 ? problems : getRecurringTicketsHistory();
+      const mostFrequentToUse = mostFrequent.length > 0 ? mostFrequent : getMostFrequentProblems();
+      const problematicAppsToUse = problematicApps.length > 0 ? problematicApps : getProblematicApplications();
+      
+      let startY = userInfo?.agency ? 50 : 40;
+      
+      if (problemsToUse.length > 0) {
         doc.setFontSize(14);
-        doc.text("Historique des problèmes", 14, 35);
+        doc.text("Historique des problèmes", 14, startY + 5);
         
-        const tableData = problems.map(item => [
+        const tableData = problemsToUse.map(item => [
           item.titre || "",
           item.occurrences.toString(),
           item.dernier ? new Date(item.dernier).toLocaleDateString('fr-FR') : 'N/A'
         ]);
         
         autoTable(doc, {
-          startY: 40,
+          startY: startY + 10,
           head: [['Problème', 'Occurrences', 'Dernière occurrence']],
           body: tableData,
           theme: 'grid',
@@ -461,12 +586,17 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         });
       }
       
-      if (mostFrequent.length > 0) {
-        const finalY = (doc as any).lastAutoTable?.finalY || 40;
+      if (problemsToUse.length === 0 && mostFrequentToUse.length === 0 && problematicAppsToUse.length === 0) {
+        doc.setFontSize(12);
+        doc.text("Aucune donnée disponible.", 14, startY + 10);
+      }
+      
+      if (mostFrequentToUse.length > 0) {
+        const finalY = (doc as any).lastAutoTable?.finalY || startY + 10;
         doc.setFontSize(14);
         doc.text("Problèmes les plus fréquents", 14, finalY + 15);
         
-        const tableData2 = mostFrequent.map(item => [
+        const tableData2 = mostFrequentToUse.map(item => [
           item.problème || "",
           item.occurrences.toString()
         ]);
@@ -480,12 +610,12 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         });
       }
       
-      if (problematicApps.length > 0) {
-        const finalY = (doc as any).lastAutoTable?.finalY || 40;
+      if (problematicAppsToUse.length > 0) {
+        const finalY = (doc as any).lastAutoTable?.finalY || startY + 10;
         doc.setFontSize(14);
         doc.text("Applications/équipements problématiques", 14, finalY + 15);
         
-        const tableData3 = problematicApps.map(item => [
+        const tableData3 = problematicAppsToUse.map(item => [
           item.application || "",
           item.tickets.toString()
         ]);
@@ -516,18 +646,24 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
 
   const exportProblemsHistoryToExcel = (reportType: string = "Problèmes récurrents") => {
     try {
-      const problems = getRecurringTicketsHistory();
-      const mostFrequent = getMostFrequentProblems();
-      const problematicApps = getProblematicApplications();
+      // Utiliser les mêmes données que l'affichage (filtrées par agence si possible)
+      const problems = getRecurringTicketsHistoryForExport();
+      const mostFrequent = getMostFrequentProblemsForExport();
+      const problematicApps = getProblematicApplicationsForExport();
+      
+      // Si aucune donnée filtrée, utiliser les données affichées (pour éviter un export vide)
+      const problemsToUse = problems.length > 0 ? problems : getRecurringTicketsHistory();
+      const mostFrequentToUse = mostFrequent.length > 0 ? mostFrequent : getMostFrequentProblems();
+      const problematicAppsToUse = problematicApps.length > 0 ? problematicApps : getProblematicApplications();
       
       const wb = XLSX.utils.book_new();
       let hasSheets = false;
       
       // Feuille 1: Historique des problèmes
-      if (problems.length > 0) {
+      if (problemsToUse.length > 0) {
         const wsData = [
           ['Problème', 'Occurrences', 'Dernière occurrence'],
-          ...problems.map(item => [
+          ...problemsToUse.map(item => [
             item.titre || "",
             item.occurrences,
             item.dernier ? new Date(item.dernier).toLocaleDateString('fr-FR') : 'N/A'
@@ -539,10 +675,10 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       }
       
       // Feuille 2: Problèmes les plus fréquents
-      if (mostFrequent.length > 0) {
+      if (mostFrequentToUse.length > 0) {
         const wsData2 = [
           ['Problème', 'Occurrences'],
-          ...mostFrequent.map(item => [
+          ...mostFrequentToUse.map(item => [
             item.problème || "",
             item.occurrences
           ])
@@ -553,10 +689,10 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       }
       
       // Feuille 3: Applications/équipements problématiques
-      if (problematicApps.length > 0) {
+      if (problematicAppsToUse.length > 0) {
         const wsData3 = [
           ['Application/Équipement', 'Nombre de tickets'],
-          ...problematicApps.map(item => [
+          ...problematicAppsToUse.map(item => [
             item.application || "",
             item.tickets
           ])
@@ -571,8 +707,9 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         const defaultData = [
           ['Rapport', reportType],
           ['Date de génération', new Date().toLocaleDateString('fr-FR')],
+          ['Généré par', userInfo?.full_name || 'Utilisateur'],
           [''],
-          ['Aucune donnée disponible pour ce rapport.']
+          ['Aucune donnée disponible.']
         ];
         const ws = XLSX.utils.aoa_to_sheet(defaultData);
         XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName("Rapport"));
@@ -701,9 +838,15 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const viewDetailedReport = (reportType?: string) => {
     const reportName = getReportName(reportType);
     if (selectedReport === "recurrents") {
-      const problems = getRecurringTicketsHistory();
-      const mostFrequent = getMostFrequentProblems();
-      const problematicApps = getProblematicApplications();
+      // Utiliser les mêmes données que l'affichage (filtrées par agence si possible)
+      const problems = getRecurringTicketsHistoryForExport();
+      const mostFrequent = getMostFrequentProblemsForExport();
+      const problematicApps = getProblematicApplicationsForExport();
+      
+      // Si aucune donnée filtrée, utiliser les données affichées (pour éviter un rapport vide)
+      const problemsToUse = problems.length > 0 ? problems : getRecurringTicketsHistory();
+      const mostFrequentToUse = mostFrequent.length > 0 ? mostFrequent : getMostFrequentProblems();
+      const problematicAppsToUse = problematicApps.length > 0 ? problematicApps : getProblematicApplications();
       
       let reportContent = `RAPPORT: ${reportName}\n`;
       reportContent += `Date de génération: ${new Date().toLocaleDateString('fr-FR')}\n`;
@@ -713,8 +856,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       reportContent += "HISTORIQUE DES PROBLÈMES\n";
       reportContent += "=".repeat(80) + "\n\n";
       
-      if (problems.length > 0) {
-        problems.forEach((item, index) => {
+      if (problemsToUse.length > 0) {
+        problemsToUse.forEach((item, index) => {
           reportContent += `${index + 1}. ${item.titre}\n`;
           reportContent += `   Occurrences: ${item.occurrences}\n`;
           reportContent += `   Dernière occurrence: ${item.dernier ? new Date(item.dernier).toLocaleDateString('fr-FR') : 'N/A'}\n\n`;
@@ -727,8 +870,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       reportContent += "PROBLÈMES LES PLUS FRÉQUENTS\n";
       reportContent += "=".repeat(80) + "\n\n";
       
-      if (mostFrequent.length > 0) {
-        mostFrequent.forEach((item, index) => {
+      if (mostFrequentToUse.length > 0) {
+        mostFrequentToUse.forEach((item, index) => {
           reportContent += `${index + 1}. ${item.problème}\n`;
           reportContent += `   Occurrences: ${item.occurrences}\n\n`;
         });
@@ -740,8 +883,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       reportContent += "APPLICATIONS/ÉQUIPEMENTS PROBLÉMATIQUES\n";
       reportContent += "=".repeat(80) + "\n\n";
       
-      if (problematicApps.length > 0) {
-        problematicApps.forEach((item, index) => {
+      if (problematicAppsToUse.length > 0) {
+        problematicAppsToUse.forEach((item, index) => {
           reportContent += `${index + 1}. ${item.application}\n`;
           reportContent += `   Nombre de tickets: ${item.tickets}\n\n`;
         });
