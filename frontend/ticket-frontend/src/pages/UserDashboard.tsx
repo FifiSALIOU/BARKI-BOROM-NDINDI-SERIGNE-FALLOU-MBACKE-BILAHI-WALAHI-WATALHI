@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { FormEvent } from "react";
-import { PanelLeft, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { PanelLeft, AlertCircle, Clock, CheckCircle, LayoutDashboard, PlusCircle, Ticket, ChevronLeft, ChevronRight } from "lucide-react";
+import helpdeskLogo from "../assets/helpdesk-logo.png";
 
 interface UserDashboardProps {
   token: string;
@@ -575,7 +576,10 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           });
           if (res.ok) {
             const data = await res.json();
-            setUserInfo({ full_name: data.full_name });
+            setUserInfo({ 
+              full_name: data.full_name,
+              role: data.role?.name || "Utilisateur"
+            });
           }
         } catch (err) {
           console.error("Erreur lors du chargement des infos utilisateur:", err);
@@ -783,7 +787,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("dashboard");
   const ticketsListRef = useRef<HTMLDivElement>(null);
-  const [userInfo, setUserInfo] = useState<{ full_name: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{ full_name: string; role?: string } | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<string>("");
@@ -896,7 +900,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif", background: "#f5f5f5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", background: "#f5f5f5", overflowX: "visible" }}>
       {/* Sidebar */}
       <div style={{ 
         position: "fixed",
@@ -904,96 +908,159 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         left: 0,
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "250px", 
-        background: "#1e293b", 
+        background: "hsl(226, 34%, 15%)", 
         color: "white", 
         padding: "20px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: "0px",
         transition: "width 0.3s ease",
         overflowY: "auto",
-        zIndex: 100
+        overflowX: "visible",
+        zIndex: 100,
+        boxSizing: "border-box"
       }}>
-        {/* Gestion d'Incidents Section */}
+        {/* HelpDesk Section */}
         <div style={{ 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
-          marginBottom: "20px", 
-          paddingBottom: "20px", 
+          marginBottom: "8px", 
+          paddingBottom: "8px", 
           borderBottom: "1px solid rgba(255,255,255,0.1)" 
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-            {/* Logo 3D cube */}
+            {/* Logo HelpDesk */}
             <div style={{
-              width: "32px",
-              height: "32px",
+              width: "40px",
+              height: "40px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#60a5fa"
+              flexShrink: 0,
+              backgroundColor: "white",
+              borderRadius: "0.75rem",
+              padding: "2px"
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
+              <img 
+                src={helpdeskLogo} 
+                alt="HelpDesk Logo" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "contain",
+                  borderRadius: "0.5rem"
+                }} 
+              />
             </div>
             {!sidebarCollapsed && (
-              <div style={{ fontSize: "16px", fontWeight: "600", color: "white", whiteSpace: "nowrap", flex: 1 }}>
-                Gestion d'Incidents
-          </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "18px", fontWeight: "700", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "white", whiteSpace: "nowrap" }}>
+                  HelpDesk
+                </div>
+                <div style={{ fontSize: "12px", fontFamily: "'Inter', system-ui, sans-serif", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", marginTop: "2px" }}>
+                  Gestion des tickets
+                </div>
+              </div>
             )}
         </div>
-          {!sidebarCollapsed && (
-            <div 
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                marginLeft: "16px",
-                transition: "background 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" />
-            </div>
-          )}
-          {sidebarCollapsed && (
-            <div 
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                margin: "0 auto",
-                transition: "background 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" style={{ transform: "rotate(180deg)" }} />
-            </div>
-          )}
         </div>
+
+        {/* Bouton de collapse/expand du sidebar */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: "fixed",
+            left: sidebarCollapsed ? "calc(80px - 14px)" : "calc(250px - 14px)",
+            top: "75px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "hsl(25, 95%, 53%)",
+            border: "2px solid white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 1000,
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            transition: "all 0.3s ease",
+            padding: 0,
+            boxSizing: "border-box",
+            overflow: "visible"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 48%)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 53%)";
+          }}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={14} color="white" />
+          ) : (
+            <ChevronLeft size={14} color="white" />
+          )}
+        </button>
+
+        {/* Profil utilisateur */}
+        {!sidebarCollapsed && userInfo && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "12px 0",
+            marginBottom: "0px",
+            borderBottom: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "hsl(25, 95%, 53%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontWeight: "600",
+              fontSize: "16px",
+              flexShrink: 0
+            }}>
+              {userInfo.full_name
+                ? userInfo.full_name
+                    .split(" ")
+                    .map(n => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "U"}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: "16px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "white",
+                fontWeight: "500",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}>
+                {userInfo.full_name || "Utilisateur"}
+              </div>
+              <div style={{
+                fontSize: "12px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "hsl(25, 95%, 53%)",
+                fontWeight: "500",
+                marginTop: "2px"
+              }}>
+                {userInfo.role || "Utilisateur"}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div 
           onClick={() => setActiveSection("dashboard")}
@@ -1001,10 +1068,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
+            padding: "10px", 
             cursor: "pointer",
-            background: activeSection === "dashboard" ? "rgba(59, 130, 246, 0.2)" : "transparent",
-            borderRadius: "8px"
+            background: activeSection === "dashboard" ? "hsl(25, 95%, 53%)" : "transparent",
+            borderRadius: "8px",
+            marginBottom: "0px"
           }}
         >
           <div style={{ 
@@ -1014,26 +1082,25 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
+            <LayoutDashboard size={20} color={activeSection === "dashboard" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
           <div style={{ 
-            fontSize: "14px", 
+            fontSize: "16px",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontWeight: "500",
             color: "white"
           }}>Tableau de bord</div>
         </div>
+        
         <div 
           onClick={() => setShowCreateModal(true)}
           style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            cursor: "pointer"
+            padding: "10px", 
+            cursor: "pointer",
+            marginBottom: "0px"
           }}
         >
           <div style={{ 
@@ -1043,14 +1110,12 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="16" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-            </svg>
+            <PlusCircle size={20} color="rgba(180, 180, 180, 0.7)" />
           </div>
           <div style={{ 
-            fontSize: "14px", 
+            fontSize: "16px",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontWeight: "500",
             color: "white"
           }}>Nouveau ticket</div>
         </div>
@@ -1065,8 +1130,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            cursor: "pointer"
+            padding: "10px", 
+            cursor: "pointer",
+            background: activeSection === "tickets" ? "hsl(25, 95%, 53%)" : "transparent",
+            borderRadius: "8px",
+            marginBottom: "0px"
           }}
         >
           <div style={{ 
@@ -1076,16 +1144,12 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="2" width="6" height="4" rx="1" />
-              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
-              <line x1="8" y1="10" x2="16" y2="10" />
-              <line x1="8" y1="14" x2="16" y2="14" />
-              <line x1="8" y1="18" x2="12" y2="18" />
-            </svg>
+            <Ticket size={20} color={activeSection === "tickets" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
           <div style={{ 
-            fontSize: "14px", 
+            fontSize: "16px",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontWeight: "500",
             color: "white"
           }}>Mes tickets</div>
         </div>
@@ -1095,7 +1159,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
+            padding: "10px", 
             cursor: "pointer"
           }}
         >
@@ -1106,14 +1170,16 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(180, 180, 180, 0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
           <div style={{ 
-            fontSize: "14px", 
+            fontSize: "16px",
+            fontFamily: "'Inter', system-ui, sans-serif",
+            fontWeight: "500",
             color: "white"
           }}>FAQ & Aide</div>
         </div>
@@ -1195,7 +1261,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           top: 0,
           left: sidebarCollapsed ? "80px" : "250px",
           right: 0,
-          background: "#1e293b",
+          background: "hsl(226, 34%, 15%)",
           padding: "16px 30px",
           display: "flex",
           alignItems: "center",

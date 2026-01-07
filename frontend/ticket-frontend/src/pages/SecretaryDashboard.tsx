@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PanelLeft, Clock3, Users, CheckCircle2, ChevronRight, ChevronDown } from "lucide-react";
+import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard } from "lucide-react";
+import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -85,6 +86,9 @@ interface UserRead {
   full_name: string;
   email: string;
   agency?: string | null;
+  role?: {
+    name: string;
+  } | null;
 }
 
 function SecretaryDashboard({ token }: SecretaryDashboardProps) {
@@ -315,7 +319,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
             id: meData.id,
             full_name: meData.full_name,
             email: meData.email,
-            agency: meData.agency
+            agency: meData.agency,
+            role: meData.role
           });
         }
 
@@ -2479,7 +2484,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
   ));
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif", background: "#f5f5f5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", background: "#f5f5f5", overflowX: "visible" }}>
       {/* Sidebar */}
       <style>{`
         .sidebar-custom::-webkit-scrollbar {
@@ -2496,15 +2501,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         left: 0,
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "250px", 
-        background: "#1e293b", 
+        background: "hsl(226, 34%, 15%)", 
         color: "white", 
         padding: "20px",
         paddingTop: "20px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: "0px",
         transition: "width 0.3s ease",
         overflowY: "auto",
+        overflowX: "visible",
         zIndex: 100,
         boxSizing: "border-box"
       }}>
@@ -2512,97 +2518,153 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
-          marginBottom: "30px",
+          marginBottom: "8px",
           marginTop: "0px",
-          paddingBottom: "10px",
+          paddingBottom: "8px",
           paddingTop: "0px",
           borderBottom: "1px solid rgba(255,255,255,0.1)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
-            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M4 7L12 3L20 7V17L12 21L4 17V7Z" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M4 7L12 11L20 7" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M12 11V21" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-              </svg>
+            <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, backgroundColor: "white", borderRadius: "0.75rem", padding: "2px" }}>
+              <img 
+                src={helpdeskLogo} 
+                alt="HelpDesk Logo" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "contain",
+                  borderRadius: "0.5rem"
+                }} 
+              />
             </div>
             {!sidebarCollapsed && (
-              <div style={{ fontSize: "18px", fontWeight: "600", whiteSpace: "nowrap" }}>
-                Gestion d'Incidents
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "18px", fontWeight: "700", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "white", whiteSpace: "nowrap" }}>
+                  HelpDesk
+                </div>
+                <div style={{ fontSize: "12px", fontFamily: "'Inter', system-ui, sans-serif", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", marginTop: "2px" }}>
+                  Gestion des tickets
+                </div>
               </div>
             )}
           </div>
-          {!sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                marginLeft: "8px",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" />
-            </div>
-          )}
-          {sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                margin: "0 auto",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" style={{ transform: "rotate(180deg)" }} />
-            </div>
-          )}
         </div>
+        
+        {/* Bouton de collapse/expand du sidebar */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: "fixed",
+            left: sidebarCollapsed ? "calc(80px - 14px)" : "calc(250px - 14px)",
+            top: "75px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "hsl(25, 95%, 53%)",
+            border: "2px solid white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 1000,
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            transition: "all 0.3s ease",
+            padding: 0,
+            boxSizing: "border-box",
+            overflow: "visible"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 48%)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 53%)";
+          }}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={14} color="white" />
+          ) : (
+            <ChevronLeft size={14} color="white" />
+          )}
+        </button>
+        
+        {/* Profil utilisateur */}
+        {!sidebarCollapsed && userInfo && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "12px 0",
+            marginBottom: "0px",
+            borderBottom: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "hsl(25, 95%, 53%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontWeight: "600",
+              fontSize: "16px",
+              flexShrink: 0
+            }}>
+              {userInfo.full_name
+                ? userInfo.full_name
+                    .split(" ")
+                    .map(n => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "S"}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: "16px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "white",
+                fontWeight: "500",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}>
+                {userInfo.full_name || "Utilisateur"}
+              </div>
+              <div style={{
+                fontSize: "12px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "hsl(25, 95%, 53%)",
+                fontWeight: "500",
+                marginTop: "2px"
+              }}>
+                {userInfo.role?.name || roleName || "Secrétaire DSI"}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           onClick={() => setActiveSection("dashboard")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "dashboard" ? "rgba(255,255,255,0.1)" : "transparent", 
+            padding: "10px", 
+            background: activeSection === "dashboard" ? "hsl(25, 95%, 53%)" : "transparent", 
             borderRadius: "8px",
-            cursor: "pointer"
+            cursor: "pointer",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
+            <LayoutDashboard size={18} color={activeSection === "dashboard" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
-          <div>Tableau de Bord</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tableau de Bord</div>
         </div>
+        
         <div 
           onClick={() => {
             setStatusFilter("all");
@@ -2612,14 +2674,15 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "tickets" ? "rgba(255,255,255,0.1)" : "transparent",
+            padding: "10px", 
+            background: activeSection === "tickets" ? "hsl(25, 95%, 53%)" : "transparent",
             borderRadius: "8px",
-            cursor: "pointer"
+            cursor: "pointer",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={activeSection === "tickets" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="9" y="2" width="6" height="4" rx="1" />
               <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
               <line x1="8" y1="10" x2="16" y2="10" />
@@ -2627,7 +2690,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <line x1="8" y1="18" x2="12" y2="18" />
             </svg>
           </div>
-          <div>Tickets</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets</div>
         </div>
         {(roleName === "Adjoint DSI" || roleName === "DSI" || roleName === "Admin") && (
           <div style={{ position: "relative" }}>
@@ -2637,26 +2700,26 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 display: "flex", 
                 alignItems: "center", 
                 gap: "12px", 
-                padding: "12px", 
-                background: activeSection === "reports" ? "rgba(255,255,255,0.1)" : "transparent",
+                padding: "10px", 
+                background: activeSection === "reports" ? "hsl(25, 95%, 53%)" : "transparent",
                 borderRadius: "8px",
                 cursor: "pointer"
               }}
             >
               <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="white" />
-                  <rect x="6" y="10" width="3" height="11" fill="white" />
-                  <rect x="10.5" y="6" width="3" height="15" fill="white" />
-                  <rect x="15" y="16" width="3" height="5" fill="white" />
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                  <rect x="6" y="10" width="3" height="11" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                  <rect x="10.5" y="6" width="3" height="15" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                  <rect x="15" y="16" width="3" height="5" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
                 </svg>
               </div>
-              <div style={{ flex: 1 }}>Rapports</div>
+              <div style={{ flex: 1, fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Rapports</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.2s ease" }}>
                 {showReportsDropdown ? (
-                  <ChevronDown size={16} color="white" />
+                  <ChevronDown size={16} color={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
                 ) : (
-                  <ChevronRight size={16} color="white" />
+                  <ChevronRight size={16} color={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
                 )}
               </div>
             </div>
@@ -2677,7 +2740,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "statistiques" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "statistiques" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Statistiques générales
@@ -2691,7 +2754,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "metriques" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "metriques" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Métriques de performance
@@ -2705,7 +2768,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "agence" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "agence" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Analyses par agence
@@ -2719,7 +2782,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "technicien" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "technicien" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Analyses par technicien
@@ -2733,7 +2796,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "evolutions" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "evolutions" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Évolutions dans le temps
@@ -2747,7 +2810,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "8px 12px", 
                     borderRadius: "4px", 
                     cursor: "pointer",
-                    background: selectedReport === "recurrents" ? "rgba(255,255,255,0.1)" : "transparent"
+                    background: selectedReport === "recurrents" ? "hsl(25, 95%, 53%)" : "transparent"
                   }}
                 >
                   Problèmes récurrents
@@ -2856,7 +2919,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           top: 0,
           left: sidebarCollapsed ? "80px" : "250px",
           right: 0,
-          background: "#1e293b",
+          background: "hsl(226, 34%, 15%)",
           padding: "16px 30px",
           display: "flex",
           alignItems: "center",

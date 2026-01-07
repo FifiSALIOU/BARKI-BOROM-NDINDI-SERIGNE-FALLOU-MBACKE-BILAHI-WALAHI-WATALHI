@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PanelLeft, ClipboardList, Clock3, CheckCircle2 } from "lucide-react";
+import { PanelLeft, ClipboardList, Clock3, CheckCircle2, LayoutDashboard, ChevronLeft, ChevronRight } from "lucide-react";
+import helpdeskLogo from "../assets/helpdesk-logo.png";
 
 interface Notification {
   id: string;
@@ -16,6 +17,9 @@ interface UserRead {
   email: string;
   agency?: string | null;
   status?: string | null;
+  role?: {
+    name: string;
+  } | null;
 }
 
 interface TechnicianDashboardProps {
@@ -207,6 +211,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             full_name: meData.full_name,
             email: meData.email,
             agency: meData.agency,
+            role: meData.role,
           });
         }
       } catch (err) {
@@ -709,7 +714,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const ticketsToResolveCount = assignedCount + inProgressCount;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif", background: "#f5f5f5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", background: "#f5f5f5", overflowX: "visible" }}>
       {/* Sidebar */}
       <div style={{ 
         position: "fixed",
@@ -717,110 +722,168 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         left: 0,
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "250px", 
-        background: "#1e293b", 
+        background: "hsl(226, 34%, 15%)", 
         color: "white", 
         padding: "20px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: "0px",
         transition: "width 0.3s ease",
         overflowY: "auto",
-        zIndex: 100
+        overflowX: "visible",
+        zIndex: 100,
+        boxSizing: "border-box"
       }}>
         <div style={{ 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
-          marginBottom: "30px",
-          paddingBottom: "10px",
+          marginBottom: "8px",
+          paddingBottom: "8px",
           borderBottom: "1px solid rgba(255,255,255,0.1)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
-            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M4 7L12 3L20 7V17L12 21L4 17V7Z" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M4 7L12 11L20 7" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M12 11V21" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-              </svg>
+            <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, backgroundColor: "white", borderRadius: "0.75rem", padding: "2px" }}>
+              <img 
+                src={helpdeskLogo} 
+                alt="HelpDesk Logo" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "contain",
+                  borderRadius: "0.5rem"
+                }} 
+              />
             </div>
             {!sidebarCollapsed && (
-              <div style={{ fontSize: "18px", fontWeight: "600", whiteSpace: "nowrap" }}>
-                Gestion d'Incidents
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "18px", fontWeight: "700", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "white", whiteSpace: "nowrap" }}>
+                  HelpDesk
+                </div>
+                <div style={{ fontSize: "12px", fontFamily: "'Inter', system-ui, sans-serif", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", marginTop: "2px" }}>
+                  Gestion des tickets
+                </div>
               </div>
             )}
           </div>
-          {!sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                marginLeft: "8px",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" />
-            </div>
-          )}
-          {sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                margin: "0 auto",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" style={{ transform: "rotate(180deg)" }} />
-            </div>
-          )}
         </div>
+        
+        {/* Bouton de collapse/expand du sidebar */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: "fixed",
+            left: sidebarCollapsed ? "calc(80px - 14px)" : "calc(250px - 14px)",
+            top: "75px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "hsl(25, 95%, 53%)",
+            border: "2px solid white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 1000,
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            transition: "all 0.3s ease",
+            padding: 0,
+            boxSizing: "border-box",
+            overflow: "visible"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 48%)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 53%)";
+          }}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={14} color="white" />
+          ) : (
+            <ChevronLeft size={14} color="white" />
+          )}
+        </button>
+        
+        {/* Profil utilisateur */}
+        {!sidebarCollapsed && userInfo && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "12px 0",
+            marginBottom: "0px",
+            borderBottom: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "hsl(25, 95%, 53%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontWeight: "600",
+              fontSize: "16px",
+              flexShrink: 0
+            }}>
+              {userInfo.full_name
+                ? userInfo.full_name
+                    .split(" ")
+                    .map(n => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "T"}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: "16px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "white",
+                fontWeight: "500",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}>
+                {userInfo.full_name || "Utilisateur"}
+              </div>
+              <div style={{
+                fontSize: "12px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "hsl(25, 95%, 53%)",
+                fontWeight: "500",
+                marginTop: "2px"
+              }}>
+                {userInfo.role?.name || "Technicien"}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           onClick={() => setActiveSection("dashboard")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "dashboard" ? "rgba(255,255,255,0.1)" : "transparent", 
+            padding: "10px", 
+            background: activeSection === "dashboard" ? "hsl(25, 95%, 53%)" : "transparent", 
             borderRadius: "8px",
             cursor: "pointer",
-            transition: "background 0.2s"
+            transition: "background 0.2s",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
+            <LayoutDashboard size={18} color={activeSection === "dashboard" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
-          <div>Tableau de Bord</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tableau de Bord</div>
         </div>
+        
         {/* Tickets en cours */}
         <div 
           onClick={() => setActiveSection("tickets-en-cours")}
@@ -828,20 +891,21 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "tickets-en-cours" ? "rgba(255,255,255,0.1)" : "transparent", 
+            padding: "10px", 
+            background: activeSection === "tickets-en-cours" ? "hsl(25, 95%, 53%)" : "transparent", 
             borderRadius: "8px",
             cursor: "pointer",
-            transition: "background 0.2s"
+            transition: "background 0.2s",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={activeSection === "tickets-en-cours" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="9" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
-          <div>Tickets en cours</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets en cours</div>
         </div>
         <div 
           onClick={() => setActiveSection("tickets-resolus")}
@@ -849,20 +913,21 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "tickets-resolus" ? "rgba(255,255,255,0.1)" : "transparent", 
+            padding: "10px", 
+            background: activeSection === "tickets-resolus" ? "hsl(25, 95%, 53%)" : "transparent", 
             borderRadius: "8px",
             cursor: "pointer",
-            transition: "background 0.2s"
+            transition: "background 0.2s",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={activeSection === "tickets-resolus" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="8 12 11 15 16 9"></polyline>
             </svg>
           </div>
-          <div>Tickets Résolus</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets Résolus</div>
         </div>
         <div 
           onClick={() => setActiveSection("tickets-rejetes")}
@@ -870,7 +935,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
+            padding: "10px", 
             background: activeSection === "tickets-rejetes" ? "rgba(255,255,255,0.1)" : "transparent", 
             borderRadius: "8px",
             cursor: "pointer",
@@ -878,14 +943,14 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={activeSection === "tickets-rejetes" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="15" y1="9" x2="9" y2="15"></line>
               <line x1="9" y1="9" x2="15" y2="15"></line>
             </svg>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>Tickets Rejetés</span>
+            <span style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets Rejetés</span>
             {rejectedCount > 0 && (
               <span
                 style={{
@@ -1007,7 +1072,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           top: 0,
           left: sidebarCollapsed ? "80px" : "250px",
           right: 0,
-          background: "#1e293b",
+          background: "hsl(226, 34%, 15%)",
           padding: "16px 30px",
           borderBottom: "1px solid #0f172a",
           zIndex: 99,

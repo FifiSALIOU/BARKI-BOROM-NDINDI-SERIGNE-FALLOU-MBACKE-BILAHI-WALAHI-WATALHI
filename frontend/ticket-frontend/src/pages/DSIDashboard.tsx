@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PanelLeft, Users, Clock3, TrendingUp, Award, UserCheck, Star } from "lucide-react";
+import { PanelLeft, Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight } from "lucide-react";
 import React from "react";
+import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -105,6 +106,9 @@ interface UserRead {
   full_name: string;
   email: string;
   agency?: string | null;
+  role?: {
+    name: string;
+  } | null;
 }
 
 function DSIDashboard({ token }: DSIDashboardProps) {
@@ -673,6 +677,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     localStorage.setItem("primaryColor", localPrimaryColor);
     if (localAppLogo) {
       localStorage.setItem("appLogo", localAppLogo);
+    } else {
+      // Supprimer le logo de localStorage si localAppLogo est null
+      localStorage.removeItem("appLogo");
     }
     
     // Mettre à jour les états globaux
@@ -708,17 +715,44 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Vérifier la taille du fichier (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         alert("Le fichier est trop volumineux. Taille maximale : 2MB");
+        // Réinitialiser l'input pour permettre de sélectionner un autre fichier
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
         return;
       }
+      // Vérifier le format du fichier
       if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
         alert("Format non accepté. Utilisez PNG ou JPG");
+        // Réinitialiser l'input pour permettre de sélectionner un autre fichier
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
         return;
       }
+      // Lire le fichier et le convertir en base64
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLocalAppLogo(reader.result as string);
+        if (reader.result) {
+          setLocalAppLogo(reader.result as string);
+          // Afficher un message de succès
+          alert("Logo téléchargé avec succès ! N'oubliez pas de cliquer sur 'Enregistrer' pour sauvegarder les modifications.");
+        } else {
+          alert("Erreur lors de la lecture du fichier. Veuillez réessayer.");
+        }
+        // Réinitialiser l'input pour permettre de télécharger le même fichier à nouveau si nécessaire
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      };
+      reader.onerror = () => {
+        alert("Erreur lors de la lecture du fichier. Veuillez réessayer.");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -1196,7 +1230,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
             id: meData.id,
             full_name: meData.full_name,
             email: meData.email,
-            agency: meData.agency
+            agency: meData.agency,
+            role: meData.role
           };
           setUserInfo(currentUserInfo);
           if (meData.role && meData.role.name) {
@@ -4386,7 +4421,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif", background: "#f5f5f5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", background: "#f5f5f5", overflowX: "visible" }}>
       <style>{`
         #dsi-sidebar::-webkit-scrollbar {
           display: none;
@@ -4405,107 +4440,167 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         left: 0,
         height: "100vh",
         width: sidebarCollapsed ? "80px" : "250px", 
-        background: "#1e293b", 
+        background: "hsl(226, 34%, 15%)", 
         color: "white", 
         padding: "20px",
         display: "flex",
         flexDirection: "column",
-        gap: "20px",
+        gap: "0px",
         transition: "width 0.3s ease",
         overflowY: "auto",
-        zIndex: 100
+        overflowX: "visible",
+        zIndex: 100,
+        boxSizing: "border-box"
       }}>
         <div style={{ 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
-          marginBottom: "30px",
-          paddingBottom: "10px",
+          marginBottom: "8px",
+          paddingBottom: "8px",
           borderBottom: "1px solid rgba(255,255,255,0.1)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
-            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M4 7L12 3L20 7V17L12 21L4 17V7Z" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M4 7L12 11L20 7" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M12 11V21" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-              </svg>
+            <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, backgroundColor: "white", borderRadius: "0.75rem", padding: "2px" }}>
+              <img 
+                src={helpdeskLogo} 
+                alt="HelpDesk Logo" 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "contain",
+                  borderRadius: "0.5rem"
+                }} 
+              />
             </div>
             {!sidebarCollapsed && (
-              <div style={{ fontSize: "18px", fontWeight: "600", whiteSpace: "nowrap" }}>{appName}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "18px", fontWeight: "700", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "white", whiteSpace: "nowrap" }}>
+                  HelpDesk
+                </div>
+                <div style={{ fontSize: "12px", fontFamily: "'Inter', system-ui, sans-serif", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", marginTop: "2px" }}>
+                  Gestion des tickets
+                </div>
+              </div>
             )}
           </div>
-          {!sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                marginLeft: "8px",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" />
-            </div>
-          )}
-          {sidebarCollapsed && (
-            <div
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "4px",
-                margin: "0 auto",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <PanelLeft size={20} color="white" style={{ transform: "rotate(180deg)" }} />
-            </div>
-          )}
         </div>
+        
+        {/* Bouton de collapse/expand du sidebar */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: "fixed",
+            left: sidebarCollapsed ? "calc(80px - 14px)" : "calc(250px - 14px)",
+            top: "75px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "hsl(25, 95%, 53%)",
+            border: "2px solid white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 1000,
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            transition: "all 0.3s ease",
+            padding: 0,
+            boxSizing: "border-box",
+            overflow: "visible"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 48%)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.background = "hsl(25, 95%, 53%)";
+          }}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={14} color="white" />
+          ) : (
+            <ChevronLeft size={14} color="white" />
+          )}
+        </button>
+        
+        {/* Profil utilisateur */}
+        {!sidebarCollapsed && userInfo && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "12px 0",
+            marginBottom: "0px",
+            borderBottom: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <div style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "hsl(25, 95%, 53%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontWeight: "600",
+              fontSize: "16px",
+              flexShrink: 0
+            }}>
+              {userInfo.full_name
+                ? userInfo.full_name
+                    .split(" ")
+                    .map(n => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "D"}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: "16px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "white",
+                fontWeight: "500",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}>
+                {userInfo.full_name || "Utilisateur"}
+              </div>
+              <div style={{
+                fontSize: "12px",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                color: "hsl(25, 95%, 53%)",
+                fontWeight: "500",
+                marginTop: "2px"
+              }}>
+                {userInfo.role?.name || userRole || "DSI"}
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           onClick={() => setActiveSection("dashboard")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px", 
-            background: activeSection === "dashboard" ? "rgba(255,255,255,0.1)" : "transparent", 
+            padding: "10px", 
+            background: activeSection === "dashboard" ? "hsl(25, 95%, 53%)" : "transparent", 
             borderRadius: "8px",
-            cursor: "pointer"
+            cursor: "pointer",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
+            <LayoutDashboard size={20} color={activeSection === "dashboard" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
-          <div>Tableau de Bord</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tableau de Bord</div>
         </div>
+        
         <div 
           onClick={() => {
             setStatusFilter("all");
@@ -4515,15 +4610,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             display: "flex", 
             alignItems: "center", 
             gap: "12px", 
-            padding: "12px 16px", 
+            padding: "10px", 
             cursor: "pointer",
             color: "white",
             borderRadius: "4px",
-            background: activeSection === "tickets" ? "rgba(255,255,255,0.1)" : "transparent"
+            background: activeSection === "tickets" ? "hsl(25, 95%, 53%)" : "transparent",
+            marginBottom: "0px"
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={activeSection === "tickets" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="9" y="2" width="6" height="4" rx="1" />
               <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
               <line x1="8" y1="10" x2="16" y2="10" />
@@ -4531,7 +4627,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <line x1="8" y1="18" x2="12" y2="18" />
             </svg>
           </div>
-          <div>Tickets</div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets</div>
         </div>
         {userRole !== "Admin" && (
           <div 
@@ -4540,22 +4636,22 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex", 
               alignItems: "center", 
               gap: "12px", 
-              padding: "12px 16px", 
+              padding: "10px", 
               cursor: "pointer",
               color: "white",
               borderRadius: "4px",
-              background: activeSection === "technicians" ? "rgba(255,255,255,0.1)" : "transparent"
+              background: activeSection === "technicians" ? "hsl(25, 95%, 53%)" : "transparent"
             }}
           >
             <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={activeSection === "technicians" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
-            <div style={{ flex: 1 }}>Techniciens</div>
+            <div style={{ flex: 1, fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Techniciens</div>
           </div>
         )}
         {userRole === "Admin" && (
@@ -4565,15 +4661,15 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex", 
               alignItems: "center", 
               gap: "12px", 
-              padding: "12px 16px", 
+              padding: "10px", 
               cursor: "pointer",
               color: "white",
               borderRadius: "4px",
-              background: activeSection === "users" ? "rgba(255,255,255,0.1)" : "transparent"
+              background: activeSection === "users" ? "hsl(25, 95%, 53%)" : "transparent"
             }}
           >
             <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={activeSection === "users" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -4591,22 +4687,22 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               alignItems: "center", 
               gap: "12px", 
               padding: "12px", 
-              background: activeSection === "reports" ? "rgba(255,255,255,0.1)" : "transparent",
+              background: activeSection === "reports" ? "hsl(25, 95%, 53%)" : "transparent",
               borderRadius: "8px",
               cursor: "pointer"
             }}
           >
             <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="white" />
-                <rect x="6" y="10" width="3" height="11" fill="white" />
-                <rect x="10.5" y="6" width="3" height="15" fill="white" />
-                <rect x="15" y="16" width="3" height="5" fill="white" />
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="6" y="10" width="3" height="11" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="10.5" y="6" width="3" height="15" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="15" y="16" width="3" height="5" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
               </svg>
             </div>
             <div style={{ flex: 1 }}>Rapports</div>
             <div style={{ width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 {showReportsDropdown ? (
                   <polyline points="6 9 12 15 18 9" />
                 ) : (
@@ -4632,7 +4728,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "statistiques" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "statistiques" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Statistiques générales
@@ -4646,7 +4742,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "metriques" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "metriques" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Métriques de performance
@@ -4660,7 +4756,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "agence" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "agence" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Analyses par agence
@@ -4674,7 +4770,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "technicien" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "technicien" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Analyses par technicien
@@ -4688,7 +4784,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "evolutions" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "evolutions" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Évolutions dans le temps
@@ -4702,7 +4798,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   padding: "8px 12px", 
                   borderRadius: "4px", 
                   cursor: "pointer",
-                  background: selectedReport === "recurrents" ? "rgba(255,255,255,0.1)" : "transparent"
+                  background: selectedReport === "recurrents" ? "hsl(25, 95%, 53%)" : "transparent"
                 }}
               >
                 Problèmes récurrents
@@ -4721,7 +4817,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               cursor: "pointer",
               color: "white",
               borderRadius: "4px",
-              background: activeSection === "maintenance" ? "rgba(255,255,255,0.1)" : "transparent"
+              background: activeSection === "maintenance" ? "hsl(25, 95%, 53%)" : "transparent"
             }}
           >
             <div style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -4743,7 +4839,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               cursor: "pointer",
               color: "white",
               borderRadius: "4px",
-              background: activeSection === "audit-logs" ? "rgba(255,255,255,0.1)" : "transparent"
+              background: activeSection === "audit-logs" ? "hsl(25, 95%, 53%)" : "transparent"
             }}
           >
             <div style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -4767,7 +4863,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 cursor: "pointer",
                 color: "white",
                 borderRadius: "4px",
-                background: activeSection === "settings" ? "rgba(255,255,255,0.1)" : "transparent"
+                background: activeSection === "settings" ? "hsl(25, 95%, 53%)" : "transparent"
               }}
             >
               <div style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -4803,7 +4899,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "apparence" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "apparence" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4816,7 +4912,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "email" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "email" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4829,7 +4925,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "securite" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "securite" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4842,7 +4938,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "types-tickets" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "types-tickets" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4855,7 +4951,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "priorites" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "priorites" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4868,7 +4964,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     cursor: "pointer",
                     color: "white",
                     borderRadius: "4px",
-                    background: activeSection === "departements" ? "rgba(255,255,255,0.1)" : "transparent",
+                    background: activeSection === "departements" ? "hsl(25, 95%, 53%)" : "transparent",
                     fontSize: "14px"
                   }}
                 >
@@ -4978,7 +5074,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           top: 0,
           left: sidebarCollapsed ? "80px" : "250px",
           right: 0,
-          background: "#1e293b",
+          background: "hsl(226, 34%, 15%)",
           padding: "16px 30px",
           display: "flex",
           alignItems: "center",
