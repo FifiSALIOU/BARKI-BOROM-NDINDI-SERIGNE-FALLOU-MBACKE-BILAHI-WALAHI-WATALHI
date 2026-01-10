@@ -5276,25 +5276,20 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              background: "#fff4e6",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
-              marginBottom: "8px",
+              justifyContent: "center",
+              zIndex: 1,
             }}
           >
-            <div
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "10px",
-                background: "#fff4e6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Clock3 size={18} color="#ff8a3c" />
-            </div>
+            <Clock3 size={18} color="#ff8a3c" />
           </div>
           <div
             style={{
@@ -5302,6 +5297,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {pendingCount}
@@ -5348,6 +5344,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
               width: "36px",
               height: "36px",
               borderRadius: "10px",
@@ -5355,7 +5354,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              zIndex: 1,
             }}
           >
             <UserCheck size={18} color="#16a34a" />
@@ -5366,6 +5365,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {activeTechniciansCount}
@@ -5412,6 +5412,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
               width: "36px",
               height: "36px",
               borderRadius: "10px",
@@ -5419,7 +5422,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              zIndex: 1,
             }}
           >
             <Clock3 size={18} color="#8b5cf6" />
@@ -5430,6 +5433,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {metrics.avgResolutionTime ?? "Chargement..."}
@@ -5477,6 +5481,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
               width: "36px",
               height: "36px",
               borderRadius: "10px",
@@ -5484,7 +5491,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              zIndex: 1,
             }}
           >
             <Star size={18} color="#eab308" />
@@ -5495,6 +5502,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {metrics.userSatisfaction ?? "Chargement..."}
@@ -5542,6 +5550,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
               width: "36px",
               height: "36px",
               borderRadius: "10px",
@@ -5549,7 +5560,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              zIndex: 1,
             }}
           >
             <Clock3 size={18} color="#0284c7" />
@@ -5560,6 +5571,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {totalTicketsCount}
@@ -5606,6 +5618,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           />
           <div
             style={{
+              position: "absolute",
+              top: "10px",
+              right: "12px",
               width: "36px",
               height: "36px",
               borderRadius: "10px",
@@ -5613,7 +5628,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              zIndex: 1,
             }}
           >
             <UserCheck size={18} color="#16a34a" />
@@ -5624,6 +5639,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              marginTop: "8px",
             }}
           >
             {resolutionRate}
