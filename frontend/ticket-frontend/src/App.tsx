@@ -62,10 +62,10 @@ function App() {
         return <TechnicianDashboard token={token} />;
       case "DSI":
       case "Admin":  // Admin a les mêmes droits que DSI
-        return <DSIDashboard token={token} />;
+        return <Navigate to="/dashboard/dsi" replace />;
       case "Utilisateur":
       default:
-        return <UserDashboard token={token} />;
+        return <Navigate to="/dashboard/user" replace />;
     }
   }
 
@@ -80,6 +80,14 @@ function App() {
           element={token ? <UserDashboard token={token} /> : <Navigate to="/" replace />}
         />
         <Route
+          path="/dashboard/user/tickets"
+          element={token ? <UserDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/user/notifications"
+          element={token ? <UserDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/dashboard/secretary"
           element={token ? <SecretaryDashboard token={token} /> : <Navigate to="/" replace />}
         />
@@ -89,6 +97,34 @@ function App() {
         />
         <Route
           path="/dashboard/dsi"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/tickets"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/technicians"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/users"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/reports"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/maintenance"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/audit-logs"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dashboard/dsi/notifications"
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />
       </Routes>

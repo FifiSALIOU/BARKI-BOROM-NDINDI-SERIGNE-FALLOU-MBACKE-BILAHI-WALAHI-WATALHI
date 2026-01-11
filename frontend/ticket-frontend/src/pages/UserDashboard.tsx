@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import type { FormEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, LayoutDashboard, PlusCircle, Ticket, ChevronLeft, ChevronRight, Bell, Wrench, Monitor, Search, Send } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 
@@ -560,7 +561,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     
     // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setActiveSection("notifications");
+    navigate("/dashboard/user/notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
@@ -662,7 +663,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       setCategory("");
       setShowCreateModal(false);
       // S'assurer que la section est sur dashboard pour voir les tickets
-      setActiveSection("dashboard");
+      navigate("/dashboard/user");
       void loadTickets();
       void loadNotifications();
       void loadUnreadCount();
@@ -790,8 +791,19 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     }
   }
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Déterminer activeSection depuis l'URL
+  const getActiveSection = () => {
+    if (location.pathname === "/dashboard/user/notifications") return "notifications";
+    if (location.pathname === "/dashboard/user/tickets") return "tickets";
+    if (location.pathname === "/dashboard/user") return "dashboard";
+    return "dashboard"; // Par défaut (pour /dashboard)
+  };
+  const activeSection = getActiveSection();
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>("dashboard");
   const ticketsListRef = useRef<HTMLDivElement>(null);
   const [userInfo, setUserInfo] = useState<{ full_name: string; role?: string } | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -1070,7 +1082,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         )}
 
         <div 
-          onClick={() => setActiveSection("dashboard")}
+          onClick={() => navigate("/dashboard/user")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
@@ -1128,7 +1140,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         </div>
         <div 
           onClick={() => {
-            setActiveSection("tickets");
+            navigate("/dashboard/user/tickets");
             setTimeout(() => {
               ticketsListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
             }, 100);
@@ -1194,7 +1206,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         <div style={{ marginTop: "auto" }}>
           {/* Bouton Notifications */}
           <div 
-            onClick={() => setActiveSection("notifications")}
+            onClick={() => navigate("/dashboard/user/notifications")}
             style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -2030,7 +2042,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 <button
                   onClick={() => {
                     setSelectedStatus(null);
-                    setActiveSection("dashboard");
+                    navigate("/dashboard/user");
                     setSearchFilter("");
                     setSelectedCharacteristic("statut");
                     setSelectedFilterValue("");
@@ -2922,7 +2934,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     </h3>
               <button
                 onClick={() => {
-                  setActiveSection("dashboard");
+                  navigate("/dashboard/user");
                   setSelectedNotificationTicket(null);
                   setSelectedNotificationTicketDetails(null);
                 }}

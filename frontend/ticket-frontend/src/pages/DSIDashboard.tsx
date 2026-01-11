@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket } from "lucide-react";
 import React from "react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
@@ -167,7 +167,24 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [techniciansSatisfaction, setTechniciansSatisfaction] = useState<string>("0.0");
   const [reopenedTicketsCount, setReopenedTicketsCount] = useState<number>(0);
   const [reopeningCalculated, setReopeningCalculated] = useState<boolean>(false);
-  const [activeSection, setActiveSection] = useState<string>("dashboard");
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Déterminer activeSection depuis l'URL
+  const getActiveSection = () => {
+    if (location.pathname === "/dashboard/dsi/notifications") return "notifications";
+    if (location.pathname === "/dashboard/dsi/audit-logs") return "audit-logs";
+    if (location.pathname === "/dashboard/dsi/maintenance") return "maintenance";
+    if (location.pathname === "/dashboard/dsi/reports") return "reports";
+    if (location.pathname === "/dashboard/dsi/users") return "users";
+    if (location.pathname === "/dashboard/dsi/technicians") return "technicians";
+    if (location.pathname === "/dashboard/dsi/tickets") return "tickets";
+    if (location.pathname === "/dashboard/dsi") return "dashboard";
+    return "dashboard"; // Par défaut
+  };
+  const activeSection = getActiveSection();
+  
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [agencyFilter, setAgencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -1066,7 +1083,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     
     // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setActiveSection("notifications");
+    navigate("/dashboard/dsi/notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
@@ -4580,7 +4597,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         
         <div 
-          onClick={() => setActiveSection("dashboard")}
+          onClick={() => navigate("/dashboard/dsi")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
@@ -4601,7 +4618,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         <div 
           onClick={() => {
             setStatusFilter("all");
-            setActiveSection("tickets");
+            navigate("/dashboard/dsi/tickets");
           }}
           style={{ 
             display: "flex", 
@@ -4628,7 +4645,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         </div>
         {userRole !== "Admin" && (
           <div 
-            onClick={() => setActiveSection("technicians")}
+            onClick={() => navigate("/dashboard/dsi/technicians")}
             style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -4649,7 +4666,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {userRole === "Admin" && (
           <div 
-            onClick={() => setActiveSection("users")}
+            onClick={() => navigate("/dashboard/dsi/users")}
             style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -4725,7 +4742,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div 
                 onClick={() => {
                   setSelectedReport("metriques");
-                  setActiveSection("reports");
+                  navigate("/dashboard/dsi/reports");
                 }}
                 style={{ 
                   padding: "8px 12px", 
@@ -4739,7 +4756,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div 
                 onClick={() => {
                   setSelectedReport("agence");
-                  setActiveSection("reports");
+                  navigate("/dashboard/dsi/reports");
                 }}
                 style={{ 
                   padding: "8px 12px", 
@@ -4753,7 +4770,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div 
                 onClick={() => {
                   setSelectedReport("technicien");
-                  setActiveSection("reports");
+                  navigate("/dashboard/dsi/reports");
                 }}
                 style={{ 
                   padding: "8px 12px", 
@@ -4767,7 +4784,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div 
                 onClick={() => {
                   setSelectedReport("evolutions");
-                  setActiveSection("reports");
+                  navigate("/dashboard/dsi/reports");
                 }}
                 style={{ 
                   padding: "8px 12px", 
@@ -4781,7 +4798,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div 
                 onClick={() => {
                   setSelectedReport("recurrents");
-                  setActiveSection("reports");
+                  navigate("/dashboard/dsi/reports");
                 }}
                 style={{ 
                   padding: "8px 12px", 
@@ -4797,7 +4814,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         </div>
         {userRole === "Admin" && (
           <div 
-            onClick={() => setActiveSection("maintenance")}
+            onClick={() => navigate("/dashboard/dsi/maintenance")}
             style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -4819,7 +4836,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {userRole === "Admin" && (
           <div 
-            onClick={() => setActiveSection("audit-logs")}
+            onClick={() => navigate("/dashboard/dsi/audit-logs")}
             style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -4968,7 +4985,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         <div style={{ marginTop: "auto" }}>
           {/* Bouton Notifications */}
           <div
-            onClick={() => setActiveSection("notifications")}
+            onClick={() => navigate("/dashboard/dsi/notifications")}
             style={{
               display: "flex",
               alignItems: "center",
@@ -13352,7 +13369,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 </h3>
                 <button
                   onClick={() => {
-                    setActiveSection("dashboard");
+                    navigate("/dashboard/dsi");
                     setSelectedNotificationTicket(null);
                     setSelectedNotificationTicketDetails(null);
                   }}
