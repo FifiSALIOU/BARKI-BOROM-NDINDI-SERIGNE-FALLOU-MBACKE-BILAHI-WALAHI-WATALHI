@@ -1460,6 +1460,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   // Rediriger vers la bonne section selon d'où on vient
                   if (activeSection === "notifications" || location.pathname === "/dashboard/user/notifications") {
                     navigate("/dashboard/user/notifications");
+                  } else if (activeSection === "tickets" || location.pathname === "/dashboard/user/tickets") {
+                    navigate("/dashboard/user/tickets");
                   } else {
                     navigate("/dashboard/user");
                   }
@@ -1488,7 +1490,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                {activeSection === "notifications" || location.pathname === "/dashboard/user/notifications" ? "Retour aux notifications" : "Retour aux tickets"}
+                Retour
               </button>
               <h2 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", marginBottom: "8px" }}>
                 Détails du ticket #{ticketDetails.number}
