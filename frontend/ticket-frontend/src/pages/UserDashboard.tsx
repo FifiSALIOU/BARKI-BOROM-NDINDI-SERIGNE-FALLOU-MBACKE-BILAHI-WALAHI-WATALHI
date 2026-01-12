@@ -1457,9 +1457,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   setShowTicketDetailsPage(false);
                   setTicketDetails(null);
                   setTicketHistory([]);
-                  // S'assurer qu'on reste sur la section notifications
-                  if (location.pathname !== "/dashboard/user/notifications") {
+                  // Rediriger vers la bonne section selon d'où on vient
+                  if (activeSection === "notifications" || location.pathname === "/dashboard/user/notifications") {
                     navigate("/dashboard/user/notifications");
+                  } else {
+                    navigate("/dashboard/user");
                   }
                 }}
                 style={{
