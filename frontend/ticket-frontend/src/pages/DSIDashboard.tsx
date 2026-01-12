@@ -7714,14 +7714,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <h3 style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: "#333" }}>
                       Répartition par priorité
                     </h3>
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie
                           data={preparePriorityData()}
                           cx="50%"
                           cy="50%"
-                          innerRadius={70}
-                          outerRadius={110}
+                          innerRadius={55}
+                          outerRadius={90}
                           paddingAngle={3}
                           dataKey="value"
                           stroke="#ffffff"
@@ -7761,14 +7761,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <h3 style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "600", color: "#333" }}>
                       Répartition par statut
                     </h3>
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie
                           data={prepareStatusData()}
                           cx="50%"
                           cy="50%"
-                          innerRadius={70}
-                          outerRadius={110}
+                          innerRadius={55}
+                          outerRadius={90}
                           paddingAngle={3}
                           dataKey="value"
                           stroke="#ffffff"
