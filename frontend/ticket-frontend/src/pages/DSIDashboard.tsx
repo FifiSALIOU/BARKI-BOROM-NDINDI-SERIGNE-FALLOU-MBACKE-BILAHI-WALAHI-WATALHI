@@ -5542,8 +5542,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       disabled={loading}
                       style={{
                         padding: "10px 20px",
-                        backgroundColor: loading ? "#d1d5db" : "#3b82f6",
-                        color: "white",
+                        backgroundColor: loading ? "#d1d5db" : "#f3f4f6",
+                        color: "black",
                         border: "none",
                         borderRadius: "6px",
                         cursor: loading ? "not-allowed" : "pointer",
@@ -5552,10 +5552,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         opacity: loading ? 0.6 : 1
                       }}
                       onMouseEnter={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#2563eb";
+                        if (!loading) e.currentTarget.style.backgroundColor = "#e5e7eb";
                       }}
                       onMouseLeave={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#3b82f6";
+                        if (!loading) e.currentTarget.style.backgroundColor = "#f3f4f6";
                       }}
                     >
                       Assigner
@@ -5571,8 +5571,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       disabled={loading}
                       style={{
                         padding: "10px 20px",
-                        backgroundColor: loading ? "#d1d5db" : "#8b5cf6",
-                        color: "white",
+                        backgroundColor: loading ? "#d1d5db" : "#f3f4f6",
+                        color: "black",
                         border: "none",
                         borderRadius: "6px",
                         cursor: loading ? "not-allowed" : "pointer",
@@ -5581,10 +5581,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         opacity: loading ? 0.6 : 1
                       }}
                       onMouseEnter={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#7c3aed";
+                        if (!loading) e.currentTarget.style.backgroundColor = "#e5e7eb";
                       }}
                       onMouseLeave={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#8b5cf6";
+                        if (!loading) e.currentTarget.style.backgroundColor = "#f3f4f6";
                       }}
                     >
                       Déléguer à un adjoint
