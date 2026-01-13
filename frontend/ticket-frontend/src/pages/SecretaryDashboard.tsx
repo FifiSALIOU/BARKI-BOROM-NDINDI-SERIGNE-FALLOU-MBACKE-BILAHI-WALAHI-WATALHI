@@ -3811,11 +3811,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "white",
             borderRadius: "12px",
-            padding: "10px 12px",
+            padding: "14px",
             boxShadow: "0 6px 18px rgba(15,23,42,0.08)",
             position: "relative",
+            minHeight: "100px",
+            overflow: "hidden",
           }}
         >
+          {/* Cercle décoratif orange en arrière-plan - coin supérieur droit */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-16px",
+              top: "-16px",
+              width: "96px",
+              height: "96px",
+              borderRadius: "50%",
+              background: "#ea580c",
+              opacity: 0.05,
+              zIndex: 0,
+            }}
+          ></div>
           <div
             style={{
               width: "36px",
@@ -3828,6 +3844,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               position: "absolute",
               top: "10px",
               right: "12px",
+              zIndex: 1,
             }}
           >
             <Clock3 size={18} color="#ff8a3c" />
@@ -3838,14 +3855,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {pendingCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151" }}>
+          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets en attente
           </div>
-          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280" }}>
+          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
             Action requise
           </div>
         </div>
@@ -3855,11 +3874,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "white",
             borderRadius: "12px",
-            padding: "10px 12px",
+            padding: "14px",
             boxShadow: "0 6px 18px rgba(15,23,42,0.08)",
             position: "relative",
+            minHeight: "100px",
+            overflow: "hidden",
           }}
         >
+          {/* Cercle décoratif orange en arrière-plan - coin supérieur droit */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-16px",
+              top: "-16px",
+              width: "96px",
+              height: "96px",
+              borderRadius: "50%",
+              background: "#ea580c",
+              opacity: 0.05,
+              zIndex: 0,
+            }}
+          ></div>
           <div
             style={{
               width: "36px",
@@ -3872,6 +3907,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               position: "absolute",
               top: "10px",
               right: "12px",
+              zIndex: 1,
             }}
           >
             <Forward size={18} color="#9333ea" />
@@ -3882,14 +3918,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {delegatedTicketsByDSI.size}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151" }}>
+          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets délégués
           </div>
-          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280" }}>
+          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
             Par le DSI
           </div>
         </div>
@@ -3899,11 +3937,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "white",
             borderRadius: "12px",
-            padding: "10px 12px",
+            padding: "14px",
             boxShadow: "0 6px 18px rgba(15,23,42,0.08)",
             position: "relative",
+            minHeight: "100px",
+            overflow: "hidden",
           }}
         >
+          {/* Cercle décoratif orange en arrière-plan - coin supérieur droit */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-16px",
+              top: "-16px",
+              width: "96px",
+              height: "96px",
+              borderRadius: "50%",
+              background: "#ea580c",
+              opacity: 0.05,
+              zIndex: 0,
+            }}
+          ></div>
           <div
             style={{
               width: "36px",
@@ -3916,6 +3970,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               position: "absolute",
               top: "10px",
               right: "12px",
+              zIndex: 1,
             }}
           >
             <Users size={18} color="#2563eb" />
@@ -3926,14 +3981,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {assignedCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151" }}>
+          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets assignés
           </div>
-          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280" }}>
+          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
             En traitement
           </div>
         </div>
@@ -3943,11 +4000,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "white",
             borderRadius: "12px",
-            padding: "10px 12px",
+            padding: "14px",
             boxShadow: "0 6px 18px rgba(15,23,42,0.08)",
             position: "relative",
+            minHeight: "100px",
+            overflow: "hidden",
           }}
         >
+          {/* Cercle décoratif orange en arrière-plan - coin supérieur droit */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-16px",
+              top: "-16px",
+              width: "96px",
+              height: "96px",
+              borderRadius: "50%",
+              background: "#ea580c",
+              opacity: 0.05,
+              zIndex: 0,
+            }}
+          ></div>
           <div
             style={{
               width: "36px",
@@ -3960,6 +4033,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               position: "absolute",
               top: "10px",
               right: "12px",
+              zIndex: 1,
             }}
           >
             <CheckCircle2 size={18} color="#16a34a" />
@@ -3970,14 +4044,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {resolvedCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151" }}>
+          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets résolus
           </div>
-          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280" }}>
+          <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
             Aujourd&apos;hui
           </div>
         </div>
