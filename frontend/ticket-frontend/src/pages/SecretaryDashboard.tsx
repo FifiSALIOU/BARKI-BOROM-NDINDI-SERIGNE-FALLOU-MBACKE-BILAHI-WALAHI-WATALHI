@@ -3851,7 +3851,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div
             style={{
-              fontSize: "20px",
+              fontSize: "28px",
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
@@ -3861,7 +3861,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           >
             {pendingCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets en attente
           </div>
           <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
@@ -3914,7 +3914,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div
             style={{
-              fontSize: "20px",
+              fontSize: "28px",
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
@@ -3924,7 +3924,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           >
             {delegatedTicketsByDSI.size}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets délégués
           </div>
           <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
@@ -3977,7 +3977,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div
             style={{
-              fontSize: "20px",
+              fontSize: "28px",
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
@@ -3987,7 +3987,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           >
             {assignedCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets assignés
           </div>
           <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
@@ -4040,7 +4040,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div
             style={{
-              fontSize: "20px",
+              fontSize: "28px",
               fontWeight: 700,
               color: "#111827",
               marginBottom: "3px",
@@ -4050,7 +4050,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           >
             {resolvedCount}
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 500, color: "#374151", position: "relative", zIndex: 1 }}>
             Tickets résolus
           </div>
           <div style={{ marginTop: "2px", fontSize: "10px", color: "#6b7280", position: "relative", zIndex: 1 }}>
