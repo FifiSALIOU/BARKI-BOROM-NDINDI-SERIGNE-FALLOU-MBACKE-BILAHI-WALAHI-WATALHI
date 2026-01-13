@@ -163,12 +163,12 @@ const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name
 function DSIDashboard({ token }: DSIDashboardProps) {
   const [searchParams] = useSearchParams();
   
-  // Fonction helper pour formater le numéro de ticket en "TK-XXX"
+  // Fonction helper pour formater le numéro de ticket en "TKT-XXX"
   const formatTicketNumber = (number: number): string => {
-    return `TK-${number.toString().padStart(3, '0')}`;
+    return `TKT-${number.toString().padStart(3, '0')}`;
   };
   
-  // Fonction pour formater le message de notification en remplaçant #X par TK-XXX
+  // Fonction pour formater le message de notification en remplaçant #X par TKT-XXX
   const formatNotificationMessage = (message: string): string => {
     return message.replace(/#(\d+)/g, (match, number) => {
       return formatTicketNumber(parseInt(number, 10));
