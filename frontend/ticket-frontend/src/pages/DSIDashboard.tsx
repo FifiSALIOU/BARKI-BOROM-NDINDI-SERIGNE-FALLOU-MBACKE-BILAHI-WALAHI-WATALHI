@@ -7938,11 +7938,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       {(() => {
                         const agencyData = prepareAgencyAnalysisData();
                         return agencyData.length > 0 ? (
-                          <ResponsiveContainer width="100%" height={400}>
+                          <ResponsiveContainer width="100%" height={280}>
                             <BarChart 
                               data={agencyData} 
                               layout="vertical"
-                              margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+                              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
                               barCategoryGap="20%"
                             >
                               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
