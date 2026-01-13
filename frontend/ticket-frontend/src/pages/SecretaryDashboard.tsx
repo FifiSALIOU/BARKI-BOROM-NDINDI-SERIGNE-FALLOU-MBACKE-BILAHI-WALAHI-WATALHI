@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward } from "lucide-react";
+import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -6460,6 +6460,240 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
         </div>
       )}
+
+          {activeSection === "technicians" && (
+            <div style={{ padding: "24px" }}>
+              <div style={{
+                background: "hsl(0, 0%, 100%)",
+                borderRadius: "8px",
+                border: "1px solid hsla(220, 20%, 92%, 0.5)",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column"
+              }}>
+                {/* Header */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "16px"
+                }}>
+                  <Wrench size={18} color="hsl(25, 95%, 53%)" />
+                  <h3 style={{
+                    fontSize: "18px",
+                    fontWeight: 600,
+                    color: "#111827",
+                    margin: 0,
+                    fontFamily: "'Inter', system-ui, sans-serif"
+                  }}>
+                    Techniciens
+                  </h3>
+                </div>
+
+                {/* Liste des techniciens */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {technicians.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: "hsl(220, 15%, 45%)" }}>
+                      Aucun technicien trouvé
+                    </div>
+                  ) : (
+                    technicians.map((tech: any) => {
+                      const initials = tech.full_name
+                        ?.split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .substring(0, 2) || "??";
+                      
+                      // Calculer les tickets relancés (par défaut 0 si non disponible)
+                      const reopenedCount = 0; // À calculer depuis l'historique si nécessaire
+                      
+                      return (
+                        <div
+                          key={tech.id}
+                          style={{
+                            border: "1px solid hsla(220, 20%, 92%, 0.5)",
+                            borderRadius: "8px",
+                            padding: "12px",
+                            transition: "all 200ms",
+                            cursor: "pointer"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "hsla(25, 95%, 53%, 0.5)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "hsla(220, 20%, 92%, 0.5)";
+                          }}
+                        >
+                          {/* En-tête avec avatar et infos */}
+                          <div style={{ display: "flex", gap: "12px", marginBottom: "10px" }}>
+                            {/* Avatar */}
+                            <div style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              background: "hsla(25, 95%, 53%, 0.1)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "hsl(25, 95%, 53%)",
+                              fontSize: "16px",
+                              fontWeight: 600,
+                              flexShrink: 0
+                            }}>
+                              {initials}
+                            </div>
+                            
+                            {/* Infos */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{
+                                fontSize: "15px",
+                                fontWeight: 600,
+                                color: "#111827",
+                                marginBottom: "3px"
+                              }}>
+                                {tech.full_name}
+                              </div>
+                              <div style={{
+                                fontSize: "13px",
+                                color: "hsl(220, 15%, 45%)",
+                                marginBottom: "10px"
+                              }}>
+                                {tech.email}
+                              </div>
+                              
+                              {/* Badge spécialisation */}
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                {tech.specialization === "materiel" ? (
+                                  <>
+                                    <Wrench size={12} color="hsl(220, 15%, 45%)" />
+                                    <span style={{
+                                      padding: "2px 8px",
+                                      borderRadius: "4px",
+                                      fontSize: "12px",
+                                      border: "1px solid hsla(220, 20%, 92%, 0.5)",
+                                      color: "hsl(220, 15%, 45%)"
+                                    }}>
+                                      Matériel
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 15%, 45%)" strokeWidth="2">
+                                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                      <line x1="8" y1="21" x2="16" y2="21"></line>
+                                      <line x1="12" y1="17" x2="12" y2="21"></line>
+                                    </svg>
+                                    <span style={{
+                                      padding: "2px 8px",
+                                      borderRadius: "4px",
+                                      fontSize: "12px",
+                                      border: "1px solid hsla(220, 20%, 92%, 0.5)",
+                                      color: "hsl(220, 15%, 45%)"
+                                    }}>
+                                      Applicatif
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Statistiques */}
+                          <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(4, 1fr)",
+                            gap: "6px",
+                            marginTop: "10px"
+                          }}>
+                            {/* En cours */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Clock size={12} color="hsl(199, 89%, 48%)" />
+                                <span style={{
+                                  fontSize: "14px",
+                                  fontWeight: 600,
+                                  color: "hsl(199, 89%, 48%)"
+                                }}>
+                                  {tech.in_progress_tickets_count || 0}
+                                </span>
+                              </div>
+                              <span style={{
+                                fontSize: "12px",
+                                color: "hsl(220, 15%, 45%)"
+                              }}>
+                                En cours
+                              </span>
+                            </div>
+
+                            {/* Assignés */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Wrench size={12} color="hsl(25, 95%, 53%)" />
+                                <span style={{
+                                  fontSize: "14px",
+                                  fontWeight: 600,
+                                  color: "hsl(25, 95%, 53%)"
+                                }}>
+                                  {tech.assigned_tickets_count || 0}
+                                </span>
+                              </div>
+                              <span style={{
+                                fontSize: "12px",
+                                color: "hsl(220, 15%, 45%)"
+                              }}>
+                                Assignés
+                              </span>
+                            </div>
+
+                            {/* Résolus */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <CheckCircle2 size={12} color="hsl(142, 76%, 36%)" />
+                                <span style={{
+                                  fontSize: "14px",
+                                  fontWeight: 600,
+                                  color: "hsl(142, 76%, 36%)"
+                                }}>
+                                  {(tech as any).resolved_tickets_count || (tech as any).closed_tickets_count || 0}
+                                </span>
+                              </div>
+                              <span style={{
+                                fontSize: "12px",
+                                color: "hsl(220, 15%, 45%)"
+                              }}>
+                                Résolus
+                              </span>
+                            </div>
+
+                            {/* Relancés */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <AlertTriangle size={12} color="hsl(0, 84%, 60%)" />
+                                <span style={{
+                                  fontSize: "14px",
+                                  fontWeight: 600,
+                                  color: "hsl(0, 84%, 60%)"
+                                }}>
+                                  {reopenedCount}
+                                </span>
+                              </div>
+                              <span style={{
+                                fontSize: "12px",
+                                color: "hsl(220, 15%, 45%)"
+                              }}>
+                                Relancés
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeSection === "reports" && (roleName === "Adjoint DSI" || roleName === "DSI" || roleName === "Admin") && (
             <>
