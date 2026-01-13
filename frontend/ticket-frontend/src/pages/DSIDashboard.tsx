@@ -5439,8 +5439,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 </svg>
                 Retour aux tickets
               </button>
-              <h2 style={{ fontSize: "24px", fontWeight: "700", color: "#111827", marginBottom: "8px" }}>
-                Détails du ticket #{ticketDetails.number}
+              <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#111827", marginBottom: "8px" }}>
+                Détails du ticket {formatTicketNumber(ticketDetails.number)}
               </h2>
             </div>
 
