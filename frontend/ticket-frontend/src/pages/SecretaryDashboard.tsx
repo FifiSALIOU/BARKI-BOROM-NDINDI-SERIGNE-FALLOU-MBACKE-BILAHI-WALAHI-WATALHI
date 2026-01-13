@@ -3971,7 +3971,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <option value="en_traitement">En traitement</option>
                     <option value="resolu">Résolus</option>
                     <option value="cloture">Clôturés</option>
-                    <option value="rejete">Rejetés</option>
+                    <option value="rejete">Relancés</option>
                   </select>
                 </div>
                 <div style={{ flex: 1, minWidth: "200px" }}>
@@ -5228,7 +5228,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <option value="en_traitement">En traitement</option>
                     <option value="resolu">Résolus</option>
                     <option value="cloture">Clôturés</option>
-                    <option value="rejete">Rejetés</option>
+                    <option value="rejete">Relancés</option>
                   </select>
                 </div>
                 <div style={{ flex: 1, minWidth: "200px" }}>
