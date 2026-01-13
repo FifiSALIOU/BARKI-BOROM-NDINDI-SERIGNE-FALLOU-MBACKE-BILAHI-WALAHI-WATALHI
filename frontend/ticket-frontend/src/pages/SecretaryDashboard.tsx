@@ -3789,11 +3789,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           {activeSection === "dashboard" && (
           <>
               <div style={{ marginBottom: "24px" }}>
-                <div style={{ fontSize: "28px", fontWeight: "600", color: "#333", marginBottom: "4px" }}>
-                  Centre d'Assignation
+                <div style={{ fontSize: "24px", fontWeight: "600", color: "#333", marginBottom: "4px" }}>
+                  Espace Adjoint DSI 📋
                 </div>
-                <div style={{ fontSize: "15px", color: "#4b5563" }}>
-                  Répartissez les tickets à votre équipe technique
+                <div style={{ fontSize: "14px", color: "#4b5563" }}>
+                  Gestion des tickets délégués
                 </div>
               </div>
 
