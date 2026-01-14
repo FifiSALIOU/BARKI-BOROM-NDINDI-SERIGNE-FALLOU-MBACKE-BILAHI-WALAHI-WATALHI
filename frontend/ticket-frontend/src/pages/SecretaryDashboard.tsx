@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp } from "lucide-react";
+import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -223,6 +223,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     if (location.pathname === "/dashboard/adjoint/notifications") return "notifications";
     if (location.pathname === "/dashboard/adjoint/statistics") return "reports";
     if (location.pathname === "/dashboard/adjoint/technicians") return "technicians";
+    if (location.pathname === "/dashboard/adjoint/actifs") return "actifs";
     if (location.pathname === "/dashboard/adjoint/tickets") return "tickets";
     if (location.pathname === "/dashboard/adjoint") return "dashboard";
     return activeSection;
@@ -3154,6 +3155,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </svg>
           </div>
           <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets</div>
+        </div>
+        
+        <div 
+          onClick={() => {
+            if (roleName === "Adjoint DSI") {
+              navigate("/dashboard/adjoint/actifs");
+            } else {
+              setActiveSection("actifs");
+            }
+          }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "10px", 
+            background: currentActiveSection === "actifs" ? "hsl(25, 95%, 53%)" : "transparent",
+            borderRadius: "8px",
+            cursor: "pointer",
+            marginBottom: "8px"
+          }}
+        >
+          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Box size={18} color={currentActiveSection === "actifs" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+          </div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Actifs</div>
         </div>
         
         <div 
