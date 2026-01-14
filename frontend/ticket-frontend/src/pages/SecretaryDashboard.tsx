@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box } from "lucide-react";
+import { Clock3, Users, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -4015,7 +4015,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             borderRadius: "6px",
                             cursor: loading ? "not-allowed" : "pointer",
                             fontSize: "14px",
-                            fontWeight: "500"
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
                           }}
                           onMouseEnter={(e) => {
                             if (!loading) e.currentTarget.style.backgroundColor = "#e5e7eb";
@@ -4024,6 +4027,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             if (!loading) e.currentTarget.style.backgroundColor = "#f3f4f6";
                           }}
                         >
+                          <UserPlus size={16} />
                           Assigner à un technicien
                         </button>
                       )}
