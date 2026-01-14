@@ -107,6 +107,19 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     }
   }
 
+  // Fonction pour obtenir le libellé d'un statut
+  function getStatusLabel(status: string): string {
+    switch (status) {
+      case "en_attente_analyse": return "En attente d'assignation";
+      case "assigne_technicien": return "Assigné au technicien";
+      case "en_cours": return "En cours";
+      case "resolu": return "Résolu";
+      case "rejete": return "Relancé";
+      case "cloture": return "Clôturé";
+      default: return status;
+    }
+  }
+
   // Fonction helper pour formater le numéro de ticket en "TKT-XXX"
   const formatTicketNumber = (number: number): string => {
     return `TKT-${number.toString().padStart(3, '0')}`;
@@ -337,7 +350,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         const data = await res.json();
         setTicketDetails(data);
         await loadTicketHistory(ticketId);
-        setViewTicketDetails(ticketId);
+        setShowTicketDetailsPage(true);
       } else {
         alert("Erreur lors du chargement des détails du ticket");
       }
@@ -1356,6 +1369,304 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         {/* Contenu principal avec scroll */}
         <div style={{ flex: 1, padding: "30px", overflow: activeSection === "notifications" ? "hidden" : "auto", paddingTop: "80px" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Affichage des détails du ticket en pleine page */}
+        {showTicketDetailsPage && ticketDetails ? (
+          <div>
+            {/* Header avec bouton retour */}
+            <div style={{ marginBottom: "24px" }}>
+              <button
+                onClick={() => {
+                  setShowTicketDetailsPage(false);
+                  setTicketDetails(null);
+                  setTicketHistory([]);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  background: "transparent",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  color: "#374151",
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  marginBottom: "16px"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f3f4f6";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Retour
+              </button>
+              <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#111827", marginBottom: "8px" }}>
+                Détails du ticket {formatTicketNumber(ticketDetails.number)}
+              </h2>
+            </div>
+
+            {/* Contenu des détails du ticket */}
+            <div style={{
+              background: "white",
+              padding: "24px",
+              borderRadius: "8px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+            }}>
+              <div style={{ marginBottom: "16px" }}>
+                <strong>Titre :</strong>
+                <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px" }}>
+                  {ticketDetails.title}
+                </p>
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <strong>Description :</strong>
+                <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px", whiteSpace: "pre-wrap" }}>
+                  {ticketDetails.description || ""}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                <div>
+                  <strong>Priorité :</strong>
+                  <span style={{
+                    marginLeft: "8px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    background: ticketDetails.priority === "critique" ? "rgba(229, 62, 62, 0.1)" : ticketDetails.priority === "haute" ? "rgba(245, 158, 11, 0.1)" : ticketDetails.priority === "moyenne" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.priority === "faible" ? "#E5E7EB" : "#9e9e9e",
+                    color: ticketDetails.priority === "critique" ? "#E53E3E" : ticketDetails.priority === "haute" ? "#F59E0B" : ticketDetails.priority === "moyenne" ? "#0DADDB" : ticketDetails.priority === "faible" ? "#6B7280" : "white"
+                  }}>
+                    {getPriorityLabel(ticketDetails.priority)}
+                  </span>
+                </div>
+                <div>
+                  <strong>Statut :</strong>
+                  <span style={{
+                    marginLeft: "8px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : ticketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#e5e7eb" : "#9e9e9e",
+                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : ticketDetails.status === "resolu" ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#6B7280" : "white"
+                  }}>
+                    {getStatusLabel(ticketDetails.status)}
+                  </span>
+                </div>
+                <div>
+                  <strong>Catégorie :</strong>
+                  <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                    {ticketDetails.category || "Non spécifiée"}
+                  </span>
+                </div>
+                <div>
+                  <strong>Type :</strong>
+                  <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#e3f2fd", borderRadius: "4px" }}>
+                    {ticketDetails.type === "materiel" ? "Matériel" : "Applicatif"}
+                  </span>
+                </div>
+                {ticketDetails.creator && (
+                  <div>
+                    <strong>Créateur :</strong>
+                    <span style={{ marginLeft: "8px" }}>
+                      {ticketDetails.creator.full_name}
+                    </span>
+                  </div>
+                )}
+                {ticketDetails.technician && (
+                  <div>
+                    <strong>Technicien assigné :</strong>
+                    <span style={{ marginLeft: "8px" }}>
+                      {ticketDetails.technician.full_name}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div style={{ marginTop: "16px" }}>
+                <strong>Historique :</strong>
+                <div style={{ marginTop: "8px" }}>
+                  {ticketHistory.length === 0 ? (
+                    <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
+                  ) : (
+                    ticketHistory.map((h) => (
+                      <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
+                        <div style={{ fontSize: "12px", color: "#555" }}>
+                          {new Date(h.changed_at).toLocaleString("fr-FR")}
+                        </div>
+                        <div style={{ marginTop: "4px", fontWeight: 500 }}>
+                          {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
+                        </div>
+                        {h.user && (
+                          <div style={{ marginTop: "4px", fontSize: "12px", color: "#666" }}>
+                            Par: {h.user.full_name}
+                          </div>
+                        )}
+                        {h.reason && (
+                          <div style={{ marginTop: "4px", color: "#666" }}>{h.reason}</div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Actions disponibles */}
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
+                <strong>Actions :</strong>
+                <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {/* Bouton Prendre en charge - visible seulement si le ticket est assigné mais pas encore en cours */}
+                  {ticketDetails.status === "assigne_technicien" && (
+                    <button
+                      onClick={() => {
+                        handleTakeCharge(ticketDetails.id);
+                        // Recharger les détails après la prise en charge
+                        setTimeout(() => {
+                          loadTicketDetails(ticketDetails.id);
+                        }, 500);
+                      }}
+                      disabled={loading}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px"
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loading) e.currentTarget.style.backgroundColor = "#0056b3";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!loading) e.currentTarget.style.backgroundColor = "#007bff";
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                      Prendre en charge
+                    </button>
+                  )}
+
+                  {/* Bouton Ajouter un commentaire */}
+                  {(ticketDetails.status === "en_cours" || ticketDetails.status === "assigne_technicien") && (
+                    <button
+                      onClick={() => {
+                        setSelectedTicket(ticketDetails.id);
+                      }}
+                      disabled={loading}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#e5e7eb",
+                        color: "black",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#d1d5db";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e5e7eb";
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      Ajouter un commentaire
+                    </button>
+                  )}
+
+                  {/* Bouton Demander des informations */}
+                  {(ticketDetails.status === "en_cours" || ticketDetails.status === "assigne_technicien") && (
+                    <button
+                      onClick={() => {
+                        setRequestInfoTicket(ticketDetails.id);
+                      }}
+                      disabled={loading}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#e5e7eb",
+                        color: "black",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#d1d5db";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e5e7eb";
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                      Demander des informations
+                    </button>
+                  )}
+
+                  {/* Bouton Marquer comme résolu */}
+                  {ticketDetails.status === "en_cours" && (
+                    <button
+                      onClick={() => {
+                        handleMarkResolved(ticketDetails.id);
+                      }}
+                      disabled={loading}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#218838";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#28a745";
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      Marquer comme résolu
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
             {activeSection === "dashboard" && (
               <div style={{ marginTop: "32px", marginBottom: "20px" }}>
                 <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827", marginBottom: "4px" }}>
@@ -4194,6 +4505,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           </div>
         </div>
             )}
+          </>
+        )}
           </div>
         </div>
 
