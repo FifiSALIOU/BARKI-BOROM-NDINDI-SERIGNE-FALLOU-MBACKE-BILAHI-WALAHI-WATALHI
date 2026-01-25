@@ -195,6 +195,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   // Fonction helper pour déterminer l'icône et les couleurs de la timeline d'historique
   const getHistoryVisuals = (entry: TicketHistory) => {
     const status = (entry.new_status || "").toLowerCase();
+    const oldStatus = (entry.old_status || "").toLowerCase();
+    const reason = (entry.reason || "").toLowerCase();
 
     let Icon = Clock;
     let iconBg = "#F3F4F6";
@@ -204,11 +206,20 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (!entry.old_status || entry.new_status === "creation") {
       // Création du ticket
       Icon = FileText;
+    } else if (
+      // Détecter délégation à l'Adjoint DSI (en_attente_analyse → en_attente_analyse avec reason contenant "délégation")
+      entry.old_status &&
+      (oldStatus.includes("en_attente_analyse") || oldStatus.includes("en attente analyse")) &&
+      (status.includes("en_attente_analyse") || status.includes("en attente analyse")) &&
+      (reason.includes("délégation") || reason.includes("délégu") || reason.includes("delegat"))
+    ) {
+      // Délégation à l'Adjoint DSI
+      Icon = Users;
     } else if (status.includes("assigne") || status.includes("assigné") || status.includes("assign")) {
       // Assignation
       Icon = UserCheck;
     } else if (status.includes("deleg") || status.includes("délégu")) {
-      // Délégation
+      // Délégation (autres cas)
       Icon = Users;
     } else if (
       status.includes("resolu") ||
