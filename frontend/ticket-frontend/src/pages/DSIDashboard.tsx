@@ -247,10 +247,26 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       return "Création du ticket";
     }
     
-    // Cas spécifique: assignation par Adjoint DSI (en_attente_analyse → assigne_technicien avec "Assignation par Secrétaire/Adjoint DSI")
     const oldStatus = (entry.old_status || "").toLowerCase();
     const newStatus = (entry.new_status || "").toLowerCase();
     const reason = (entry.reason || "").toLowerCase();
+    
+    // Cas spécifique: délégation à l'Adjoint DSI (en_attente_analyse → en_attente_analyse avec "Délégation au Adjoint DSI")
+    if ((oldStatus.includes("en_attente_analyse") || oldStatus.includes("en attente analyse")) &&
+        (newStatus.includes("en_attente_analyse") || newStatus.includes("en attente analyse")) &&
+        (reason.includes("délégation") || reason.includes("délégu") || reason.includes("delegat"))) {
+      // Essayer d'obtenir le nom de l'Adjoint depuis le ticket (secretary_id)
+      if (ticket && ticket.secretary_id && allUsers.length > 0) {
+        const adjoint = allUsers.find((u: any) => String(u.id) === String(ticket.secretary_id));
+        if (adjoint && adjoint.full_name) {
+          return `Ticket Délégué à ${adjoint.full_name}`;
+        }
+      }
+      // Si pas de nom trouvé, utiliser "Adjoint DSI" par défaut
+      return "Ticket Délégué à Adjoint DSI";
+    }
+    
+    // Cas spécifique: assignation par Adjoint DSI (en_attente_analyse → assigne_technicien avec "Assignation par Secrétaire/Adjoint DSI")
     
     if ((oldStatus.includes("en_attente_analyse") || oldStatus.includes("en attente analyse")) &&
         (newStatus.includes("assigne_technicien") || newStatus.includes("assigne technicien") || newStatus.includes("assigné technicien")) &&
