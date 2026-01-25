@@ -1802,9 +1802,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             </div>
                             {!isCreation && (
                               <>
-                                <div style={{ marginTop: "4px", fontSize: "13px", color: "#374151" }}>
-                                  {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
-                                </div>
                                 {h.user && (
                                   <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
                                     Par: {h.user.full_name}
@@ -3541,9 +3538,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                                 </div>
                                 {!isCreation && (
                                   <>
-                                    <div style={{ marginTop: "4px", fontSize: "13px", color: "#374151" }}>
-                                      {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
-                                    </div>
                                     {h.user && (
                                       <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
                                         Par: {h.user.full_name}
@@ -3787,9 +3781,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                           </div>
                           {!isCreation && (
                             <>
-                              <div style={{ marginTop: "4px", fontSize: "13px", color: "#374151" }}>
-                                {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
-                              </div>
                               {h.user && (
                                 <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
                                   Par: {h.user.full_name}
@@ -4756,9 +4747,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                                     </div>
                                     {!isCreation && (
                                       <>
-                                        <div style={{ marginTop: "4px", fontSize: "13px", color: "#374151" }}>
-                                          {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
-                                        </div>
                                         {h.user && (
                                           <div style={{ marginTop: "4px", fontSize: "12px", color: "#6B7280" }}>
                                             Par: {h.user.full_name}
