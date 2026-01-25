@@ -97,6 +97,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   // Fonction helper pour déterminer l'icône et les couleurs de la timeline d'historique
   const getHistoryVisuals = (entry: TicketHistory) => {
     const status = (entry.new_status || "").toLowerCase();
+    const oldStatus = (entry.old_status || "").toLowerCase();
+    const reason = (entry.reason || "").toLowerCase();
 
     let Icon = Clock;
     let iconBg = "#F3F4F6";
@@ -112,6 +114,14 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     } else if (status.includes("deleg") || status.includes("délégu")) {
       // Délégation
       Icon = Users;
+    } else if (
+      // Détecter rejet de résolution (resolu → rejete avec Validation utilisateur: Rejeté)
+      (oldStatus.includes("resolu") || oldStatus.includes("résolu")) &&
+      (status.includes("rejete") || status.includes("rejeté")) &&
+      reason.includes("validation utilisateur: rejeté")
+    ) {
+      // Ticket relancé (rejet de résolution)
+      Icon = RefreshCcw;
     } else if (
       status.includes("resolu") ||
       status.includes("résolu") ||
