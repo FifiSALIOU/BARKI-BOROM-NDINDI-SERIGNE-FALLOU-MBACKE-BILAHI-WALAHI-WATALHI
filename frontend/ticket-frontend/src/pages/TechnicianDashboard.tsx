@@ -2009,7 +2009,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gridTemplateColumns: "repeat(3, 1fr)",
                     gap: "16px",
                     alignItems: "stretch",
                     margin: "0 0 24px",
@@ -2288,98 +2288,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       }}
                     >
                       Aujourd'hui
-                    </span>
-                  </div>
-
-                  {/* KPI Temps moyen de résolution */}
-                  <div
-                    style={{
-                      position: "relative",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      padding: "14px",
-                      borderRadius: "12px",
-                      background: "white",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      minHeight: "100px",
-                      overflow: "hidden",
-                    }}
-                    onMouseEnter={(e) => {
-                      const badge = e.currentTarget.querySelector('.kpi-badge-tech') as HTMLElement;
-                      if (badge) badge.style.transform = "scale(1.5)";
-                    }}
-                    onMouseLeave={(e) => {
-                      const badge = e.currentTarget.querySelector('.kpi-badge-tech') as HTMLElement;
-                      if (badge) badge.style.transform = "scale(1)";
-                    }}
-                  >
-                    {/* Cercle décoratif orange en arrière-plan - coin supérieur droit */}
-                    <div
-                      className="kpi-badge-tech"
-                      style={{
-                        position: "absolute",
-                        right: "-16px",
-                        top: "-16px",
-                        width: "96px",
-                        height: "96px",
-                        borderRadius: "50%",
-                        background: "rgba(255, 138, 60, 0.05)",
-                        transition: "transform 500ms ease",
-                      }}
-                    />
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        alignItems: "flex-start",
-                        width: "100%",
-                        marginBottom: "8px",
-                        zIndex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "8px",
-                          background: "#e0edff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Clock3 size={16} color="#2563eb" />
-                      </div>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: "28px",
-                        fontWeight: "bold",
-                        color: "#111827",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {resolvedCount > 0 ? `${averageResolutionTime}h` : "0h"}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: "500",
-                        color: "#374151",
-                      }}
-                    >
-                      Temps moyen de résolution
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        color: "#6b7280",
-                        marginTop: "2px",
-                      }}
-                    >
-                      Par ticket résolu
                     </span>
                   </div>
                 </div>
