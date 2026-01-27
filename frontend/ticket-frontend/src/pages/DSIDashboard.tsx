@@ -10743,7 +10743,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                        Actif
                                      </span>
                                    ) : (
-                                     <span style={{ background: "hsl(0, 0%, 90%)", color: mutedFg, borderRadius: "9999px", padding: "4px 12px", fontSize: "13px" }}>
+                                     <span style={{ background: orange, color: "white", borderRadius: "9999px", padding: "4px 12px", fontSize: "13px" }}>
                                        Inactif
                                      </span>
                                    )}
