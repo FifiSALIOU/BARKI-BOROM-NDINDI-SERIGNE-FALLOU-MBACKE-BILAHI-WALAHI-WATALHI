@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers } from "lucide-react";
+import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers, Monitor } from "lucide-react";
 import React from "react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
@@ -471,6 +471,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [delegatedTicketsByMe, setDelegatedTicketsByMe] = useState<Set<string>>(new Set());
+  const [apiTicketTypes, setApiTicketTypes] = useState<Array<{ id: number; code: string; label: string; is_active: boolean }>>([]);
+  const [apiTicketTypesLoading, setApiTicketTypesLoading] = useState(false);
+  const [apiTicketTypesError, setApiTicketTypesError] = useState<string | null>(null);
   const [userRoleFilter, setUserRoleFilter] = useState<string>("all");
   const [userStatusFilter, setUserStatusFilter] = useState<string>("all");
   const [userAgencyFilter, setUserAgencyFilter] = useState<string>("all");
@@ -1559,6 +1562,26 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       }, 150);
     }
   }, [activeSection]);
+
+  // Charger les types de tickets (table ticket_types) quand on affiche la section Types
+  useEffect(() => {
+    if (location.pathname !== "/dashboard/admin/types" || !token) return;
+    setApiTicketTypesLoading(true);
+    setApiTicketTypesError(null);
+    fetch("http://localhost:8000/ticket-config/types", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Erreur chargement des types"))))
+      .then((data: Array<{ id: number; code: string; label: string; is_active: boolean }>) => {
+        setApiTicketTypes(data || []);
+        setApiTicketTypesError(null);
+      })
+      .catch((e) => {
+        setApiTicketTypesError(e?.message || "Erreur");
+        setApiTicketTypes([]);
+      })
+      .finally(() => setApiTicketTypesLoading(false));
+  }, [location.pathname, token]);
 
   async function loadUnreadCount() {
     if (!token || token.trim() === "") {
@@ -5687,7 +5710,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {activeSection === "roles" ? "Gestion des rôles" : activeSection === "users" ? "Gestion des utilisateurs" : activeSection === "tickets" ? "Tickets" : activeSection === "technicians" ? "Équipe" : activeSection === "reports" ? "Statistiques générales" : "Tableau de bord"}
+              {activeSection === "roles" ? "Gestion des rôles" : activeSection === "users" ? "Gestion des utilisateurs" : activeSection === "tickets" ? "Tickets" : activeSection === "technicians" ? "Équipe" : activeSection === "reports" ? "Statistiques générales" : activeSection === "types" ? "Types de tickets" : "Tableau de bord"}
             </div>
             <div style={{ 
               fontSize: "13px", 
@@ -5695,7 +5718,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#6b7280",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {activeSection === "roles" ? "Créez, modifiez et gérez les rôles et permissions" : activeSection === "users" ? "Créez, modifiez et gérez les comptes utilisateurs" : activeSection === "tickets" ? "Gérez tous vos tickets" : activeSection === "technicians" ? "Gestion des membres de l'équipe DSI et des techniciens" : activeSection === "reports" ? "Vue d'ensemble des tickets et de l'activité du support" : "Vue d'ensemble de votre activité"}
+              {activeSection === "roles" ? "Créez, modifiez et gérez les rôles et permissions" : activeSection === "users" ? "Créez, modifiez et gérez les comptes utilisateurs" : activeSection === "tickets" ? "Gérez tous vos tickets" : activeSection === "technicians" ? "Gestion des membres de l'équipe DSI et des techniciens" : activeSection === "reports" ? "Vue d'ensemble des tickets et de l'activité du support" : activeSection === "types" ? "Types de tickets configurés dans la base (Matériel, Applicatif, etc.)" : "Vue d'ensemble de votre activité"}
             </div>
           </div>
           
@@ -10616,6 +10639,190 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 </div>
               )}
              </>
+           )}
+
+           {activeSection === "types" && (
+             <div style={{ marginTop: "24px" }}>
+               {/* En-tête Types de tickets : Layers + titre + bouton Nouveau type */}
+               <div style={{
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "space-between",
+                 flexWrap: "wrap",
+                 gap: "16px",
+                 marginBottom: "24px"
+               }}>
+                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                   <div style={{
+                     width: "40px",
+                     height: "40px",
+                     borderRadius: "8px",
+                     background: "rgba(249, 115, 22, 0.1)",
+                     display: "flex",
+                     alignItems: "center",
+                     justifyContent: "center"
+                   }}>
+                     <Layers size={24} color="hsl(25, 95%, 53%)" strokeWidth={2} />
+                   </div>
+                   <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 700, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                     Types de tickets
+                   </h2>
+                 </div>
+                 <button
+                   type="button"
+                   style={{
+                     display: "inline-flex",
+                     alignItems: "center",
+                     gap: "8px",
+                     padding: "10px 20px",
+                     backgroundColor: "hsl(25, 95%, 53%)",
+                     color: "white",
+                     border: "none",
+                     borderRadius: "8px",
+                     cursor: "pointer",
+                     fontSize: "14px",
+                     fontWeight: 500,
+                     fontFamily: "system-ui, -apple-system, sans-serif",
+                     boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                   }}
+                 >
+                   <Plus size={18} />
+                   Nouveau type
+                 </button>
+               </div>
+
+               {apiTicketTypesLoading ? (
+                 <div style={{ padding: "48px", textAlign: "center", color: "#6b7280", fontSize: "15px" }}>
+                   Chargement des types…
+                 </div>
+               ) : apiTicketTypesError ? (
+                 <div style={{ padding: "48px", textAlign: "center", color: "#ef4444", fontSize: "15px" }}>
+                   {apiTicketTypesError}
+                 </div>
+               ) : (
+                 <div style={{
+                   display: "grid",
+                   gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                   gap: "20px"
+                 }}>
+                   {apiTicketTypes.map((t) => {
+                     const isMateriel = String(t.code).toLowerCase() === "materiel";
+                     const isApplicatif = String(t.code).toLowerCase() === "applicatif";
+                     const desc = isMateriel
+                       ? "Problèmes liés aux équipements physiques (ordinateurs, imprimantes, etc.)"
+                       : isApplicatif
+                       ? "Problèmes liés aux logiciels et applications"
+                       : `Type de ticket : ${t.label}`;
+                     return (
+                       <div
+                         key={t.id}
+                         style={{
+                           background: "#ffffff",
+                           borderRadius: "12px",
+                           border: "1px solid #e5e7eb",
+                           padding: "20px",
+                           boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                           position: "relative"
+                         }}
+                       >
+                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
+                           <div style={{ display: "flex", alignItems: "center", gap: "14px", flex: 1, minWidth: 0 }}>
+                             <div style={{
+                               width: "48px",
+                               height: "48px",
+                               borderRadius: "50%",
+                               background: isMateriel ? "rgba(249, 115, 22, 0.1)" : "#f3f4f6",
+                               display: "flex",
+                               alignItems: "center",
+                               justifyContent: "center",
+                               flexShrink: 0
+                             }}>
+                               {isMateriel ? (
+                                 <Wrench size={24} color="hsl(25, 95%, 53%)" strokeWidth={2} />
+                               ) : (
+                                 <Monitor size={24} color={isApplicatif ? "#374151" : "hsl(25, 95%, 53%)"} strokeWidth={2} />
+                               )}
+                             </div>
+                             <div style={{ minWidth: 0 }}>
+                               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                 <span style={{ fontSize: "16px", fontWeight: 600, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                                   {t.label}
+                                 </span>
+                                 {t.is_active && (
+                                   <span style={{
+                                     fontSize: "12px",
+                                     fontWeight: 500,
+                                     color: "#22c55e",
+                                     background: "rgba(34, 197, 94, 0.1)",
+                                     padding: "2px 8px",
+                                     borderRadius: "9999px"
+                                   }}>
+                                     Actif
+                                   </span>
+                                 )}
+                               </div>
+                               <p style={{ margin: "6px 0 0 0", fontSize: "14px", color: "#6b7280", lineHeight: 1.4, fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                                 {desc}
+                               </p>
+                             </div>
+                           </div>
+                           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                             <button
+                               type="button"
+                               aria-label="Modifier"
+                               style={{
+                                 width: "32px",
+                                 height: "32px",
+                                 display: "flex",
+                                 alignItems: "center",
+                                 justifyContent: "center",
+                                 background: "transparent",
+                                 border: "none",
+                                 borderRadius: "6px",
+                                 cursor: "pointer",
+                                 color: "#6b7280"
+                               }}
+                               onMouseEnter={(e) => { e.currentTarget.style.color = "#111827"; e.currentTarget.style.background = "#f3f4f6"; }}
+                               onMouseLeave={(e) => { e.currentTarget.style.color = "#6b7280"; e.currentTarget.style.background = "transparent"; }}
+                             >
+                               <Pencil size={20} strokeWidth={2} />
+                             </button>
+                             <button
+                               type="button"
+                               aria-label="Supprimer"
+                               style={{
+                                 width: "32px",
+                                 height: "32px",
+                                 display: "flex",
+                                 alignItems: "center",
+                                 justifyContent: "center",
+                                 background: "transparent",
+                                 border: "none",
+                                 borderRadius: "6px",
+                                 cursor: "pointer",
+                                 color: "#ef4444"
+                               }}
+                               onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"; e.currentTarget.style.color = "rgba(239, 68, 68, 0.8)"; }}
+                               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#ef4444"; }}
+                             >
+                               <Trash2 size={20} strokeWidth={2} />
+                             </button>
+                           </div>
+                         </div>
+                         <div style={{ marginTop: "12px", fontSize: "12px", color: "hsl(25, 95%, 53%)", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                           Code: {t.code}
+                         </div>
+                       </div>
+                     );
+                   })}
+                   {apiTicketTypes.length === 0 && !apiTicketTypesLoading && !apiTicketTypesError && (
+                     <div style={{ gridColumn: "1 / -1", padding: "48px", textAlign: "center", color: "#6b7280", fontSize: "15px" }}>
+                       Aucun type de ticket configuré.
+                     </div>
+                   )}
+                 </div>
+               )}
+             </div>
            )}
 
            {activeSection === "users" && (() => {
