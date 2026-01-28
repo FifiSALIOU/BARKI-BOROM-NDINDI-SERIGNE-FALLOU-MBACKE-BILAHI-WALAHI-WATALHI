@@ -11154,7 +11154,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           })()}
 
           {activeSection === "types" && userRole === "Admin" && (
-            <div style={{ padding: "24px" }}>
+            <div style={{ padding: "24px", background: "white" }}>
               {/* Header avec bouton */}
               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "24px" }}>
                 <button
