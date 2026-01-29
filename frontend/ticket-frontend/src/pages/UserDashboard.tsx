@@ -542,7 +542,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     }
     
     try {
-      const res = await fetch("http://localhost:8000/notifications/", {
+      const res = await fetch("http://localhost:8000/notifications/?unread_only=true", {
         headers: {
           Authorization: `Bearer ${actualToken}`,
         },
