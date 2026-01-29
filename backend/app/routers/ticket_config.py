@@ -133,3 +133,33 @@ def update_ticket_type(
     return ticket_type
 
 
+@router.delete("/types/{type_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_ticket_type(
+    type_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Supprime un type de ticket.
+    Impossible si des catégories sont liées à ce type.
+    """
+    ticket_type = db.query(models.TicketTypeModel).filter(models.TicketTypeModel.id == type_id).first()
+    if not ticket_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Type de ticket non trouvé"
+        )
+
+    # Vérifier s'il existe des catégories liées
+    categories_count = db.query(models.TicketCategory).filter(
+        models.TicketCategory.ticket_type_id == type_id
+    ).count()
+    if categories_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Impossible de supprimer ce type : des catégories y sont rattachées. Désactivez-le ou supprimez d'abord les catégories."
+        )
+
+    db.delete(ticket_type)
+    db.commit()
+

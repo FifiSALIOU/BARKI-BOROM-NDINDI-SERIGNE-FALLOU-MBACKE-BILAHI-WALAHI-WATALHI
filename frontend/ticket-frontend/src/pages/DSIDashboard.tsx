@@ -1333,9 +1333,36 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   };
 
   const handleDeleteType = async (typeId: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce type de ticket ?")) {
-      // Note: L'API pour supprimer un type n'existe pas encore
-      alert("Fonctionnalité de suppression de type à implémenter via l'API");
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce type de ticket ?")) return;
+    if (!token) {
+      alert("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8000/ticket-config/types/${typeId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const typesRes = await fetch("http://localhost:8000/ticket-config/types", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (typesRes.ok) {
+          const data = await typesRes.json();
+          setTicketTypes(data);
+        }
+        alert("Type de ticket supprimé avec succès !");
+      } else {
+        const error = await res.json().catch(() => ({ detail: "Erreur lors de la suppression" }));
+        alert(error.detail || "Erreur lors de la suppression du type");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la suppression du type:", err);
+      alert("Erreur lors de la suppression du type");
     }
   };
 
