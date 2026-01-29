@@ -70,7 +70,8 @@ class TicketBase(BaseModel):
 
 
 class TicketCreate(TicketBase):
-    pass
+    # Priorité non définie à la création par l'utilisateur ; définie par DSI/Adjoint DSI à l'assignation
+    priority: Optional[TicketPriority] = None
 
 
 class TicketEdit(BaseModel):
@@ -114,6 +115,8 @@ class TicketRead(TicketBase):
     assigned_at: Optional[datetime] = None
     resolved_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None
+    # priority peut être None tant que le DSI/Adjoint DSI ne l'a pas définie
+    priority: Optional[TicketPriority] = None
     # category est hérité de TicketBase
 
     class Config:

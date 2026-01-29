@@ -41,7 +41,7 @@ interface Ticket {
     agency: string | null;
   };
   user_agency: string | null;
-  priority: string;
+  priority: string | null;
   status: string;
   type?: string;
   category?: string | null;
@@ -1911,9 +1911,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   }, [appTheme]);
 
   // Fonction pour charger les tickets (séparée pour pouvoir être appelée périodiquement)
-  async function loadTickets(searchTerm?: string) {
+  async function loadTickets(searchTerm?: string): Promise<Ticket[]> {
     if (!token || token.trim() === "") {
-      return;
+      return [];
     }
     
     try {
@@ -1937,8 +1937,10 @@ function DSIDashboard({ token }: DSIDashboardProps) {
         ).length;
         setMetrics(prev => ({ ...prev, openTickets: openCount }));
       }
+      return ticketsData;
     } catch (err) {
       console.error("Erreur lors du chargement des tickets:", err);
+      return [];
     }
   }
 
@@ -2005,7 +2007,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
         }
 
         // Charger tous les tickets
-        await loadTickets();
+        const ticketsData = await loadTickets();
 
         // Charger la liste des techniciens avec leurs stats
         const techRes = await fetch("http://localhost:8000/users/technicians", {
@@ -3225,10 +3227,15 @@ function DSIDashboard({ token }: DSIDashboardProps) {
 
   const preparePriorityEvolutionData = () => {
     const priorities = ['critique', 'haute', 'moyenne', 'faible', 'non_definie'];
-    return priorities.map(priority => ({
+    const fromPriorities = priorities.map(priority => ({
       priorité: priority === 'non_definie' ? 'Non définie' : priority.charAt(0).toUpperCase() + priority.slice(1),
       nombre: allTickets.filter(t => t.priority === priority).length
     }));
+    const nonDefinieCount = allTickets.filter(t => t.priority == null || t.priority === "").length;
+    if (nonDefinieCount > 0) {
+      fromPriorities.push({ priorité: "Non définie", nombre: nonDefinieCount });
+    }
+    return fromPriorities;
   };
 
   const prepareDayOfWeekData = () => {
@@ -7507,10 +7514,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   return `il y a ${diffInDays} jours`;
                 };
 
-                // Couleur de la barre selon la priorité
-                const borderColor = t.priority === "critique" ? "#E53E3E" : 
+                // Couleur de la barre selon la priorité (neutre si priorité non encore définie par DSI/Adjoint)
+                const borderColor = !t.priority || t.priority === "faible" || t.priority === "non_definie" ? "rgba(107, 114, 128, 0.3)" :
+                                   t.priority === "critique" ? "#E53E3E" : 
                                    t.priority === "haute" ? "#F59E0B" : 
-                                   t.priority === "faible" || t.priority === "non_definie" ? "rgba(107, 114, 128, 0.3)" : 
                                    "#0DADDB";
 
                 // Déterminer le type de ticket basé sur la catégorie
@@ -7609,7 +7616,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                  t.priority === "faible" ? "#6B7280" : t.priority === "non_definie" ? "#6B7280" : "#374151",
                           whiteSpace: "nowrap",
                         }}>
-                          {t.priority.charAt(0).toUpperCase() + t.priority.slice(1)}
+                          {t.priority ? (t.priority.charAt(0).toUpperCase() + t.priority.slice(1)) : "—"}
                         </span>
 
                         {/* Badge Catégorie */}
@@ -8733,7 +8740,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                      t.priority === "faible" ? "#6B7280" : t.priority === "non_definie" ? "#6B7280" : "#374151",
                               whiteSpace: "nowrap",
                             }}>
-                              {t.priority.charAt(0).toUpperCase() + t.priority.slice(1)}
+                              {t.priority ? (t.priority.charAt(0).toUpperCase() + t.priority.slice(1)) : "—"}
                             </span>
 
                             {/* Badge Catégorie */}

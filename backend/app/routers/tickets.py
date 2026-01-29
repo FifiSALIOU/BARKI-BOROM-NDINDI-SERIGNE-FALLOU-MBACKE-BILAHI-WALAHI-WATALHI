@@ -37,14 +37,16 @@ def create_ticket(
     if last_ticket and last_ticket.number:
         next_number = last_ticket.number + 1
     
-    priority_id = _get_priority_id_from_enum(db, ticket_in.priority)
+    # Priorité non définie à la création par l'utilisateur ; DSI/Adjoint DSI la définit à l'assignation
+    priority = getattr(ticket_in, "priority", None)
+    priority_id = _get_priority_id_from_enum(db, priority) if priority else None
     ticket = models.Ticket(
         number=next_number,  # Assigner le numéro généré
         title=ticket_in.title,
         description=ticket_in.description,
         type=ticket_in.type,
-        priority=ticket_in.priority,
-        priority_id=priority_id,  # Synchronisé avec la table priorities
+        priority=priority,
+        priority_id=priority_id,
         category=ticket_in.category,  # Catégorie du ticket
         creator_id=current_user.id,
         user_agency=current_user.agency,  # Enregistrer l'agence de l'utilisateur créateur
@@ -662,8 +664,10 @@ def escalate_ticket(
     old_priority = ticket.priority
     old_status = ticket.status
     
-    # Augmenter la priorité
-    if ticket.priority == models.TicketPriority.FAIBLE:
+    # Augmenter la priorité (si priorité non encore définie, passer à Moyenne)
+    if ticket.priority is None:
+        ticket.priority = models.TicketPriority.MOYENNE
+    elif ticket.priority == models.TicketPriority.FAIBLE:
         ticket.priority = models.TicketPriority.MOYENNE
     elif ticket.priority == models.TicketPriority.MOYENNE:
         ticket.priority = models.TicketPriority.HAUTE

@@ -90,7 +90,7 @@ class Ticket(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     type = Column(Enum(TicketType), nullable=False)
-    priority = Column(Enum(TicketPriority), nullable=False, default=TicketPriority.MOYENNE)
+    priority = Column(Enum(TicketPriority), nullable=True, default=None)  # Défini par DSI/Adjoint DSI à l'assignation, pas à la création par l'utilisateur
     priority_id = Column(Integer, ForeignKey("priorities.id"), nullable=True)  # Référence table priorities, synchronisé avec priority
     status = Column(Enum(TicketStatus), nullable=False, default=TicketStatus.EN_ATTENTE_ANALYSE)
     category = Column(String(100), nullable=True)  # Catégorie du ticket (ex: Réseau, Logiciel, Matériel, etc.)
