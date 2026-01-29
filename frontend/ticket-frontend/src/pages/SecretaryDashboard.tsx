@@ -3818,7 +3818,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               flexShrink: 0
             }}>
               <div style={{
-                padding: "28px 20px 20px 20px",
+                padding: "28px 20px 20px 30px",
                 borderBottom: "1px solid #e0e0e0",
                 display: "flex",
                 justifyContent: "space-between",
@@ -3861,7 +3861,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 flex: 1,
                 overflowY: "auto",
                 overflowX: "hidden",
-                padding: "10px",
+                padding: "10px 10px 10px 0",
                 minHeight: 0
               }}>
                 {notificationsTickets.length === 0 ? (
@@ -3900,7 +3900,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           }
                         }}
                         style={{
-                          padding: "12px",
+                          padding: "12px 12px 12px 30px",
                           marginBottom: "8px",
                           borderRadius: "8px",
                           background: isSelected ? "#e3f2fd" : "white",
@@ -10188,7 +10188,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               position: "relative"
             }}>
               <div style={{
-                padding: "28px 20px 20px 20px",
+                padding: "28px 20px 20px 30px",
                 borderBottom: "1px solid #e0e0e0",
                 display: "flex",
                 justifyContent: "space-between",
@@ -10228,7 +10228,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 flex: 1,
                 overflowY: "auto",
                 overflowX: "hidden",
-                padding: "10px",
+                padding: "10px 10px 10px 0",
                 minHeight: 0
               }}>
                 {notificationsTickets.length === 0 ? (
@@ -10280,7 +10280,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           }
                         }}
                         style={{
-                          padding: "12px",
+                          padding: "12px 12px 12px 30px",
                           marginBottom: "8px",
                           borderRadius: "8px",
                           background: isSelected ? "#e3f2fd" : "white",
