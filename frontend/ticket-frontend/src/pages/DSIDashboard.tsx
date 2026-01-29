@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers, Monitor, X } from "lucide-react";
+import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers, Monitor, X, FolderTree } from "lucide-react";
 import React from "react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
@@ -428,6 +428,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (path === "/dashboard/admin/technicians" || path === "/dashboard/dsi/technicians") return "technicians";
     if (path === "/dashboard/admin/actifs" || path === "/dashboard/dsi/actifs") return "actifs";
     if (path === "/dashboard/admin/types") return "types";
+    if (path === "/dashboard/admin/categories") return "categories";
     if (path === "/dashboard/admin/tickets" || path === "/dashboard/dsi/tickets") return "tickets";
     // Vérifier les sous-sections de paramètres en premier (ordre important)
     if (path === "/dashboard/admin/parametres/apparence") return "apparence";
@@ -5400,6 +5401,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <Layers size={18} color={activeSection === "types" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
             </div>
             <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Types</div>
+          </div>
+        )}
+        {userRole === "Admin" && (
+          <div 
+            onClick={() => navigate(`${getRoutePrefix()}/categories`)}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              padding: "10px", 
+              cursor: "pointer",
+              color: "white",
+              borderRadius: "4px",
+              background: activeSection === "categories" ? "hsl(25, 95%, 53%)" : "transparent",
+              marginBottom: "8px"
+            }}
+          >
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <FolderTree size={18} color={activeSection === "categories" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+            </div>
+            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Catégories</div>
           </div>
         )}
         {userRole !== "Admin" && (
@@ -11252,6 +11274,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               </div>
             );
           })()}
+
+          {activeSection === "categories" && userRole === "Admin" && (
+            <div style={{ padding: "24px", background: "white" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+                <FolderTree size={24} color="hsl(220, 15%, 45%)" />
+                <h1 style={{ fontSize: "24px", fontWeight: 600, color: "hsl(220, 15%, 45%)", margin: 0 }}>Catégories</h1>
+              </div>
+              <p style={{ color: "hsl(var(--muted-foreground))", margin: 0 }}>Gestion des catégories de tickets.</p>
+            </div>
+          )}
 
           {activeSection === "types" && userRole === "Admin" && (
             <div style={{ padding: "24px", background: "white" }}>

@@ -186,6 +186,10 @@ function App() {
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />
         <Route
+          path="/dashboard/admin/categories"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/dashboard/admin/technicians"
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />
