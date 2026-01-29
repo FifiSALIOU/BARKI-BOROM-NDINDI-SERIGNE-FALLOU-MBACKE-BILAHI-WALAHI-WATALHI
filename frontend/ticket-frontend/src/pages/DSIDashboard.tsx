@@ -11387,7 +11387,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             {isMateriel ? (
                               <Wrench size={18} color="hsl(25, 95%, 53%)" />
                             ) : (
-                              <Monitor size={18} color="hsl(25, 95%, 53%)" />
+                              <Monitor size={18} color="#1E3A5F" />
                             )}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
