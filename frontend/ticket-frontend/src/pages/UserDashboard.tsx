@@ -1952,90 +1952,67 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
               <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
                 <strong>Actions :</strong>
                 <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {/* Bouton Modifier - Ne pas afficher si le ticket est résolu */}
-                  {ticketDetails.status !== "resolu" && (() => {
+                  {(() => {
                     const isAssigned = ticketDetails.technician !== null && ticketDetails.technician !== undefined;
                     const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
                     const isBlocked = blockedStatuses.includes(ticketDetails.status) || isAssigned;
-                    
+                    const noActionsAvailable = isBlocked && ticketDetails.status !== "resolu";
+                    if (noActionsAvailable) {
+                      return <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>;
+                    }
+                    if (ticketDetails.status === "resolu") {
+                      return null;
+                    }
                     return (
-                      <button
-                        onClick={() => {
-                          if (isBlocked) {
-                            alert(getBlockedMessage(ticketDetails, "modification"));
-                            return;
-                          }
-                          openEditModal(ticketDetails);
-                        }}
-                        disabled={loading || isBlocked}
-                        style={{
-                          padding: "10px 20px",
-                          backgroundColor: isBlocked ? "#d1d5db" : "#e5e7eb",
-                          color: "black",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: isBlocked ? "not-allowed" : "pointer",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          opacity: isBlocked ? 0.6 : 1,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px"
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isBlocked) e.currentTarget.style.backgroundColor = "#d1d5db";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isBlocked) e.currentTarget.style.backgroundColor = "#e5e7eb";
-                        }}
-                      >
-                        <Pencil size={16} />
-                        Modifier
-                      </button>
-                    );
-                  })()}
-
-                  {/* Bouton Supprimer - Ne pas afficher si le ticket est résolu */}
-                  {ticketDetails.status !== "resolu" && (() => {
-                    const isAssigned = ticketDetails.technician !== null && ticketDetails.technician !== undefined;
-                    const blockedStatuses = ["assigne_technicien", "en_cours", "cloture", "resolu", "rejete"];
-                    const isBlocked = blockedStatuses.includes(ticketDetails.status) || isAssigned;
-                    
-                    return (
-                      <button
-                        onClick={() => {
-                          if (loading) return;
-                          if (isBlocked) {
-                            alert(getBlockedMessage(ticketDetails, "suppression"));
-                            return;
-                          }
-                          setConfirmDeleteTicket(ticketDetails);
-                        }}
-                        disabled={loading || isBlocked}
-                        style={{
-                          padding: "10px 20px",
-                          backgroundColor: isBlocked ? "#d1d5db" : "#e5e7eb",
-                          color: "red",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: isBlocked ? "not-allowed" : "pointer",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          opacity: isBlocked ? 0.6 : 1,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px"
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isBlocked) e.currentTarget.style.backgroundColor = "#d1d5db";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isBlocked) e.currentTarget.style.backgroundColor = "#e5e7eb";
-                        }}
-                      >
-                        <Trash2 size={16} color="red" />
-                        Supprimer
-                      </button>
+                      <>
+                        <button
+                          onClick={() => openEditModal(ticketDetails)}
+                          disabled={loading}
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#e5e7eb",
+                            color: "black",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#d1d5db"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#e5e7eb"; }}
+                        >
+                          <Pencil size={16} />
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (loading) return;
+                            setConfirmDeleteTicket(ticketDetails);
+                          }}
+                          disabled={loading}
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#e5e7eb",
+                            color: "red",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#d1d5db"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#e5e7eb"; }}
+                        >
+                          <Trash2 size={16} color="red" />
+                          Supprimer
+                        </button>
+                      </>
                     );
                   })()}
 
