@@ -1516,6 +1516,10 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         </div>
         <div 
           onClick={() => {
+            setShowTicketDetailsPage(false);
+            setTicketDetails(null);
+            setTicketHistory([]);
+            setViewTicketDetails(null);
             navigate("/dashboard/user/tickets");
             setTimeout(() => {
               ticketsListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
