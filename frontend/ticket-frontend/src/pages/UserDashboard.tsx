@@ -1926,6 +1926,26 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     {ticketDetails.category || "Non spécifiée"}
                   </span>
                 </div>
+                <div>
+                  <strong>Type :</strong>
+                  <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
+                    {ticketDetails.type === "materiel" ? "Matériel" : ticketDetails.type === "applicatif" ? "Applicatif" : ticketDetails.type || "—"}
+                  </span>
+                </div>
+                <div>
+                  <strong>Statut :</strong>
+                  <span style={{
+                    marginLeft: "8px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : ticketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
+                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : ticketDetails.status === "resolu" ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#374151" : "#6b7280"
+                  }}>
+                    {getStatusLabel(ticketDetails.status)}
+                  </span>
+                </div>
                 {ticketDetails.creator && (
                   <div>
                     <strong>Créateur :</strong>
