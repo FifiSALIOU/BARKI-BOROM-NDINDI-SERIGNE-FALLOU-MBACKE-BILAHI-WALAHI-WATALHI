@@ -7020,7 +7020,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             <Clock3 size={20} color="#8b5cf6" />
           </div>
           <div style={{ fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "12px" }}>
-            Temps moyen
+            Temps<br />moyen
           </div>
           <div
             style={{
