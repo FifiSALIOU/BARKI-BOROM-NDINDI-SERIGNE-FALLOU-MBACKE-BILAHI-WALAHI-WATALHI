@@ -1888,9 +1888,12 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     }
   }, [activeSection, selectedNotificationTicket, token]);
 
-  // Scroll vers le haut quand la section notifications s'ouvre
+  // Fermer les détails du ticket et scroll vers le haut quand la section notifications s'ouvre
   useEffect(() => {
     if (activeSection === "notifications") {
+      setShowTicketDetailsPage(false);
+      setTicketDetails(null);
+      setTicketHistory([]);
       // Attendre un peu pour que le DOM soit mis à jour
       setTimeout(() => {
         // Scroller vers le haut de la fenêtre
