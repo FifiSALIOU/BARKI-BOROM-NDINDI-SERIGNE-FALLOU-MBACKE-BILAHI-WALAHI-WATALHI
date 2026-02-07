@@ -8865,6 +8865,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       tabIndex={0}
                       onClick={() => setShowPeriodCalendar((v) => !v)}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowPeriodCalendar((v) => !v); } }}
+                      className="dsi-period-filter-trigger"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -8879,7 +8880,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         cursor: "pointer",
                       }}
                     >
-                      <Calendar size={16} color="#6b7280" />
+                      <Calendar size={16} color="#6b7280" className="dsi-period-filter-trigger-icon" />
                       <span>
                         {advancedPeriodRange?.from
                           ? advancedPeriodRange.to

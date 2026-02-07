@@ -246,3 +246,13 @@ p[style*="color: red"] {
   --border: 220, 20%, 88%;
   --green-active: 142, 76%, 36%;
 }
+
+/* Filtre Période (DSI) : survol orange */
+.dsi-period-filter-trigger:hover {
+  background-color: #fff7ed !important;
+  border-color: #f97316 !important;
+  color: #ea580c !important;
+}
+.dsi-period-filter-trigger:hover svg {
+  color: #ea580c !important;
+}
