@@ -6821,7 +6821,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
@@ -6894,7 +6895,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
@@ -6967,7 +6969,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
@@ -7041,7 +7044,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
@@ -7115,7 +7119,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
@@ -7188,7 +7193,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           style={{
             background: "#fff",
             borderRadius: "0.75rem",
-            padding: "1.5rem",
+            padding: "2rem 1.5rem",
+            minHeight: "145px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             border: "1px solid rgba(229,231,235,0.5)",
             position: "relative",
