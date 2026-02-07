@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2 } from "lucide-react";
+import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Ticket as TicketIcon } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -6177,6 +6177,24 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 marginBottom: "24px", 
                 flexWrap: "wrap"
               }}>
+              </div>
+
+              {/* Compteur de tickets avec icône */}
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "8px",
+                marginTop: "12px",
+                marginBottom: "12px"
+              }}>
+                <TicketIcon size={20} color="#4b5563" />
+                <span style={{ 
+                  fontSize: "14px", 
+                  fontWeight: "500", 
+                  color: "#4b5563"
+                }}>
+                  {filteredTickets.length} ticket(s) trouvé(s)
+                </span>
               </div>
 
               {/* Tickets Cards */}
