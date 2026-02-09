@@ -547,7 +547,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (path === "/dashboard/admin/roles" || path === "/dashboard/dsi/roles") return "roles";
     if (path === "/dashboard/admin/technicians" || path === "/dashboard/dsi/technicians") return "technicians";
     if (path === "/dashboard/admin/actifs" || path === "/dashboard/dsi/actifs") return "actifs";
-    if (path === "/dashboard/admin/types") return "types";
+    if (path === "/dashboard/admin/types" || path === "/dashboard/dsi/types") return "types";
     if (path === "/dashboard/admin/categories") return "categories";
     if (path === "/dashboard/admin/tickets" || path === "/dashboard/dsi/tickets") return "tickets";
     // Vérifier les sous-sections de paramètres en premier (ordre important)
@@ -5870,6 +5870,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {userRole !== "Admin" && (
           <div 
+            onClick={() => navigate(`${getRoutePrefix()}/types`)}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              padding: "10px", 
+              cursor: "pointer",
+              color: "white",
+              borderRadius: "4px",
+              background: activeSection === "types" ? "hsl(25, 95%, 53%)" : "transparent",
+              marginBottom: "8px"
+            }}
+          >
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Layers size={18} color={activeSection === "types" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+            </div>
+            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Types</div>
+          </div>
+        )}
+        {userRole !== "Admin" && (
+          <div 
             onClick={() => navigate(`${getRoutePrefix()}/technicians`)}
             style={{ 
               display: "flex", 
@@ -6300,6 +6321,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Groupes"
                 : activeSection === "tickets"
                 ? "Tickets"
+                : activeSection === "types"
+                ? "Types"
                 : activeSection === "technicians"
                 ? "Équipe"
                 : activeSection === "reports"
@@ -6325,6 +6348,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Gestion des groupes"
                 : activeSection === "tickets"
                 ? "Gérez tous vos tickets"
+                : activeSection === "types"
+                ? "Types de tickets (Matériel / Applicatif)"
                 : activeSection === "technicians"
                 ? "Gestion des membres de l'équipe DSI et des techniciens"
                 : activeSection === "reports"
@@ -13339,6 +13364,18 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeSection === "types" && userRole !== "Admin" && (
+            <div style={{ marginTop: "40px", padding: "24px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <Layers size={24} color="#f97316" strokeWidth={2} />
+                <span style={{ fontSize: "18px", fontWeight: "600", color: "#111827" }}>Types</span>
+              </div>
+              <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+                Types de tickets (Matériel / Applicatif). Cette section est disponible dans le menu.
+              </p>
             </div>
           )}
 

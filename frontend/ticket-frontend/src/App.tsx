@@ -160,6 +160,10 @@ function App() {
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />
         <Route
+          path="/dashboard/dsi/types"
+          element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/dashboard/dsi/users"
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />
