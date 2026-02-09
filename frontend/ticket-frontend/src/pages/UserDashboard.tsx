@@ -144,9 +144,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       status.includes("valide") ||
       status.includes("validé") ||
       status.includes("cloture") ||
-      status.includes("clôture")
+      status.includes("clôture") ||
+      status.includes("retraite") ||
+      status.includes("retraité")
     ) {
-      // Résolution / validation
+      // Résolution / validation / retraite : même icône "Résolu" (coche verte)
       Icon = CheckCircle2;
       iconBg = "#ECFDF3";
       iconBorder = "#BBF7D0";
@@ -363,6 +365,12 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         
         return "Ticket en attente d'assignation";
       }
+    }
+
+    // Cas spécifique: passage en retraite (ex. en_cours → retraite) : afficher uniquement "Retraité"
+    const newStatusForRetraite = (entry.new_status || "").toLowerCase();
+    if (newStatusForRetraite.includes("retraite") || newStatusForRetraite.includes("retraité")) {
+      return "Retraité";
     }
 
     if (entry.old_status) {
