@@ -3862,7 +3862,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              Tableau de bord
+              {currentActiveSection === "actifs" ? "Gestion des Actifs" : "Tableau de bord"}
             </div>
             <div style={{ 
               fontSize: "13px", 
@@ -3870,7 +3870,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#6b7280",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              Vue d'ensemble de votre activité
+              {currentActiveSection === "actifs"
+                ? "Gérez l'inventaire des équipements informatiques"
+                : "Vue d'ensemble de votre activité"}
             </div>
           </div>
           

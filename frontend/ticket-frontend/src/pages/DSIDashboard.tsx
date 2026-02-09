@@ -6286,7 +6286,21 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {activeSection === "roles" ? "Gestion des rôles" : activeSection === "users" ? "Gestion des utilisateurs" : activeSection === "groupes" ? "Groupes" : activeSection === "tickets" ? "Tickets" : activeSection === "technicians" ? "Équipe" : activeSection === "reports" ? "Statistiques générales" : "Tableau de bord"}
+              {activeSection === "actifs"
+                ? "Gestion des Actifs"
+                : activeSection === "roles"
+                ? "Gestion des rôles"
+                : activeSection === "users"
+                ? "Gestion des utilisateurs"
+                : activeSection === "groupes"
+                ? "Groupes"
+                : activeSection === "tickets"
+                ? "Tickets"
+                : activeSection === "technicians"
+                ? "Équipe"
+                : activeSection === "reports"
+                ? "Statistiques générales"
+                : "Tableau de bord"}
             </div>
             <div style={{ 
               fontSize: "13px", 
@@ -6297,7 +6311,21 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               marginLeft: 0,
               textAlign: "left"
             }}>
-              {activeSection === "roles" ? "Créez, modifiez et gérez les rôles et permissions" : activeSection === "users" ? "Créez, modifiez et gérez les comptes utilisateurs" : activeSection === "groupes" ? "Gestion des groupes" : activeSection === "tickets" ? "Gérez tous vos tickets" : activeSection === "technicians" ? "Gestion des membres de l'équipe DSI et des techniciens" : activeSection === "reports" ? "Vue d'ensemble des tickets et de l'activité du support" : "Vue d'ensemble de votre activité"}
+              {activeSection === "actifs"
+                ? "Gérez l'inventaire des équipements informatiques"
+                : activeSection === "roles"
+                ? "Créez, modifiez et gérez les rôles et permissions"
+                : activeSection === "users"
+                ? "Créez, modifiez et gérez les comptes utilisateurs"
+                : activeSection === "groupes"
+                ? "Gestion des groupes"
+                : activeSection === "tickets"
+                ? "Gérez tous vos tickets"
+                : activeSection === "technicians"
+                ? "Gestion des membres de l'équipe DSI et des techniciens"
+                : activeSection === "reports"
+                ? "Vue d'ensemble des tickets et de l'activité du support"
+                : "Vue d'ensemble de votre activité"}
             </div>
           </div>
           
