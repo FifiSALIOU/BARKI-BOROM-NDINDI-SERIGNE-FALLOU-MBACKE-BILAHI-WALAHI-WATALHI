@@ -6204,7 +6204,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     alignItems: "center",
                     gap: "8px",
                     padding: "8px 14px",
-                    backgroundColor: "#1e3a5f",
+                    backgroundColor: "hsl(226, 34%, 15%)",
                     color: "#ffffff",
                     border: "none",
                     borderRadius: "8px",
