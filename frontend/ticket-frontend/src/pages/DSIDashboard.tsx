@@ -8850,7 +8850,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(220, 15%, 93%)",
                     display: "flex",
                     alignItems: "center",
@@ -8882,7 +8882,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(145, 60%, 90%)",
                     display: "flex",
                     alignItems: "center",
@@ -8914,7 +8914,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(45, 80%, 90%)",
                     display: "flex",
                     alignItems: "center",
@@ -8946,7 +8946,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(0, 80%, 93%)",
                     display: "flex",
                     alignItems: "center",
@@ -8978,7 +8978,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(230, 60%, 93%)",
                     display: "flex",
                     alignItems: "center",
@@ -9010,7 +9010,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(220, 15%, 93%)",
                     display: "flex",
                     alignItems: "center",
@@ -9042,7 +9042,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(145, 60%, 90%)",
                     display: "flex",
                     alignItems: "center",
@@ -9074,7 +9074,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     width: "40px",
                     height: "40px",
-                    borderRadius: "9999px",
+                    borderRadius: "12px",
                     background: "hsl(25, 80%, 92%)",
                     display: "flex",
                     alignItems: "center",
