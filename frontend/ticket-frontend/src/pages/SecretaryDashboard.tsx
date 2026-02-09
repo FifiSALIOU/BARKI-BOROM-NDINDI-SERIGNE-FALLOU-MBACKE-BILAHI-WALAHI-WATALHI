@@ -3641,13 +3641,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tickets</div>
         </div>
         
+        {roleName === "Adjoint DSI" && (
         <div 
           onClick={() => {
-            if (roleName === "Adjoint DSI") {
-              navigate("/dashboard/adjoint/actifs");
-            } else {
-              setActiveSection("actifs");
-            }
+            navigate("/dashboard/adjoint/actifs");
           }}
           style={{ 
             display: "flex", 
@@ -3665,6 +3662,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Actifs</div>
         </div>
+        )}
         
         <div 
           onClick={() => {
@@ -6166,7 +6164,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </>
           )}
 
-          {currentActiveSection === "actifs" && (
+          {currentActiveSection === "actifs" && roleName === "Adjoint DSI" && (
             <div style={{ marginTop: "40px", marginBottom: "24px" }}>
               {/* Boutons Exporter / Nouvel actif - au-dessus des 8 KPIs, au coin droit */}
               <div
