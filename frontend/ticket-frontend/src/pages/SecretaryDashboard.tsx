@@ -6177,31 +6177,33 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(220, 15%, 93%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Monitor size={18} color="#4b5563" />
-                    </div>
+                  {/* Icône à gauche */}
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(220, 15%, 93%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Monitor size={18} color="#4b5563" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>Total Actifs</div>
+                  {/* Valeur + libellé */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Total Actifs</div>
+                  </div>
                 </div>
 
                 {/* En service */}
@@ -6209,31 +6211,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(145, 60%, 90%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <CheckCircle size={18} color="#16a34a" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(145, 60%, 90%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <CheckCircle size={18} color="#16a34a" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>En service</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En service</div>
+                  </div>
                 </div>
 
                 {/* En maintenance */}
@@ -6241,31 +6243,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(45, 80%, 90%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Wrench size={18} color="#f97316" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(45, 80%, 90%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Wrench size={18} color="#f97316" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>En maintenance</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En maintenance</div>
+                  </div>
                 </div>
 
                 {/* En panne */}
@@ -6273,31 +6275,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(0, 80%, 93%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <AlertTriangle size={18} color="#ef4444" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(0, 80%, 93%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AlertTriangle size={18} color="#ef4444" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>En panne</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En panne</div>
+                  </div>
                 </div>
 
                 {/* En stock */}
@@ -6305,31 +6307,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(230, 60%, 93%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Package size={18} color="#2563eb" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(230, 60%, 93%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Package size={18} color="#2563eb" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>En stock</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En stock</div>
+                  </div>
                 </div>
 
                 {/* Réformés */}
@@ -6337,31 +6339,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(220, 15%, 93%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Trash2 size={18} color="#4b5563" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(220, 15%, 93%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Trash2 size={18} color="#4b5563" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>Réformés</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Réformés</div>
+                  </div>
                 </div>
 
                 {/* Valeur totale */}
@@ -6369,31 +6371,31 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   style={{
                     background: "#ffffff",
                     borderRadius: "12px",
-                    padding: "16px 18px",
+                    padding: "16px",
                     boxShadow: "0 4px 12px rgba(15,23,42,0.06)",
                     border: "1px solid rgba(229,231,235,0.8)",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
+                    alignItems: "center",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "9999px",
-                        background: "hsl(145, 60%, 90%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <DollarSign size={18} color="#16a34a" />
-                    </div>
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "9999px",
+                      background: "hsl(145, 60%, 90%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <DollarSign size={18} color="#16a34a" />
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, color: "#111827" }}>0 FCFA</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280", fontWeight: 500 }}>Valeur totale</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0 FCFA</div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Valeur totale</div>
+                  </div>
                 </div>
 
                 {/* Garanties expirant */}
