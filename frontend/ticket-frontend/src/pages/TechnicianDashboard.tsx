@@ -1978,6 +1978,10 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
                 <strong>Actions :</strong>
                 <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") ? (
+                    <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>
+                  ) : (
+                  <>
                   {/* Bouton Prendre en charge - visible seulement si le ticket est assigné mais pas encore en cours */}
                   {ticketDetails.status === "assigne_technicien" && (
                     <button
@@ -2156,6 +2160,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       </svg>
                       Reprendre
                     </button>
+                  )}
+                  </>
                   )}
                 </div>
               </div>

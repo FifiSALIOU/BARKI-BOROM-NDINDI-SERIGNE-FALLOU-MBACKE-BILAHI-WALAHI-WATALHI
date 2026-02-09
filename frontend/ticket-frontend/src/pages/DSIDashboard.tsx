@@ -6768,6 +6768,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
                 <strong>Actions :</strong>
                 <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") ? (
+                    <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>
+                  ) : (
+                  <>
                   {/* Bouton Assigner */}
                   {ticketDetails.status === "en_attente_analyse" && (
                     <button
@@ -6922,6 +6926,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     >
                       Rouvrir
                     </button>
+                  )}
+                  </>
                   )}
                 </div>
               </div>
