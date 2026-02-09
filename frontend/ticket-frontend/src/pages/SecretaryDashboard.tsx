@@ -340,6 +340,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     if (location.pathname === "/dashboard/adjoint/statistics") return "reports";
     if (location.pathname === "/dashboard/adjoint/technicians") return "technicians";
     if (location.pathname === "/dashboard/adjoint/actifs") return "actifs";
+    if (location.pathname === "/dashboard/adjoint/types") return "types";
     if (location.pathname === "/dashboard/adjoint/tickets") return "tickets";
     if (location.pathname === "/dashboard/adjoint") return "dashboard";
     return activeSection;
@@ -3666,6 +3667,26 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         
         {roleName === "Adjoint DSI" && (
         <div 
+          onClick={() => navigate("/dashboard/adjoint/types")}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "10px", 
+            background: currentActiveSection === "types" ? "hsl(25, 95%, 53%)" : "transparent",
+            borderRadius: "8px",
+            cursor: "pointer",
+            marginBottom: "8px"
+          }}
+        >
+          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Layers size={18} color={currentActiveSection === "types" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+          </div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Types</div>
+        </div>
+        )}
+        {roleName === "Adjoint DSI" && (
+        <div 
           onClick={() => {
             navigate("/dashboard/adjoint/actifs");
           }}
@@ -3887,7 +3908,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {currentActiveSection === "actifs" ? "Gestion des Actifs" : "Tableau de bord"}
+              {currentActiveSection === "actifs" ? "Gestion des Actifs" : currentActiveSection === "types" ? "Types" : "Tableau de bord"}
             </div>
             <div style={{ 
               fontSize: "13px", 
@@ -3897,6 +3918,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             }}>
               {currentActiveSection === "actifs"
                 ? "Gérez l'inventaire des équipements informatiques"
+                : currentActiveSection === "types"
+                ? "Types de tickets (Matériel / Applicatif)"
                 : "Vue d'ensemble de votre activité"}
             </div>
           </div>
@@ -6211,6 +6234,18 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 );
               })()}
             </>
+          )}
+
+          {currentActiveSection === "types" && roleName === "Adjoint DSI" && (
+            <div style={{ marginTop: "40px", padding: "24px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <Layers size={24} color="#f97316" strokeWidth={2} />
+                <span style={{ fontSize: "18px", fontWeight: "600", color: "#111827" }}>Types</span>
+              </div>
+              <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+                Types de tickets (Matériel / Applicatif). Cette section est disponible dans le menu.
+              </p>
+            </div>
           )}
 
           {currentActiveSection === "actifs" && roleName === "Adjoint DSI" && (
