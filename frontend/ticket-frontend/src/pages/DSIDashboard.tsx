@@ -10194,7 +10194,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           justifyContent: "center",
                           gap: "6px",
                           padding: "7px 10px",
-                          borderRadius: "999px",
+                          // Coins arrondis type rounded-xl (~12px) comme sur l'exemple
+                          borderRadius: "12px",
                           border: "1px solid #e5e7eb",
                           backgroundColor: "#ffffff",
                           fontSize: "13px",
@@ -10223,7 +10224,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             justifyContent: "center",
                             gap: "6px",
                             padding: "7px 10px",
-                            borderRadius: "999px",
+                            // Coins arrondis type rounded-xl (~12px) comme sur l'exemple
+                            borderRadius: "12px",
                             border: "none",
                             backgroundColor: "#111827",
                             fontSize: "13px",
