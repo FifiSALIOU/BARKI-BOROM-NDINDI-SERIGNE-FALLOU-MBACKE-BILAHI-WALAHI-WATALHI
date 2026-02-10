@@ -28,7 +28,7 @@ class TechnicianWithWorkload(schemas.UserRead):
 def list_technicians(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(
-        require_role("Secrétaire DSI", "Adjoint DSI", "DSI", "Admin")
+        require_role("Secrétaire DSI", "Adjoint DSI", "DSI", "Admin", "Technicien")
     ),
 ):
     """Liste tous les techniciens avec leur charge de travail pour l'assignation de tickets"""

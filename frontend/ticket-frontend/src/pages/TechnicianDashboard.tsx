@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { ClipboardList, Clock3, CheckCircle2, CheckCircle, LayoutDashboard, ChevronLeft, ChevronRight, Bell, Search, Box, Clock, Monitor, Wrench, FileText, UserCheck, RefreshCcw, Users, MessageCircle, AlertTriangle, Package, Archive, Banknote, ChevronDown } from "lucide-react";
+import { ClipboardList, Clock3, CheckCircle2, CheckCircle, LayoutDashboard, ChevronLeft, ChevronRight, Bell, Search, Box, Clock, Monitor, Wrench, FileText, UserCheck, RefreshCcw, Users, MessageCircle, AlertTriangle, Package, Archive, Banknote, ChevronDown, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Pencil, User, Calendar, X, Download, Plus } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 
 interface Notification {
@@ -61,6 +61,130 @@ interface TicketHistory {
     full_name: string;
   } | null;
 }
+
+interface Asset {
+  id: number;
+  nom: string;
+  type: string;
+  numero_de_serie: string;
+  marque: string;
+  modele: string;
+  statut: string;
+  localisation: string;
+  departement: string;
+  date_d_achat: string;
+  date_de_fin_garantie?: string | null;
+  prix_d_achat?: number | null;
+  fournisseur?: string | null;
+  assigned_to_user_id?: number | null;
+  assigned_to_name?: string | null;
+  specifications?: any;
+  notes?: string | null;
+  qr_code?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: number | null;
+}
+
+interface AssetTypeConfig {
+  id: number;
+  code: string;
+  label: string;
+  is_active: boolean;
+}
+
+interface DepartmentConfig {
+  id: number;
+  name: string;
+  is_active: boolean;
+}
+
+interface Technician {
+  id: string;
+  full_name: string;
+  email?: string;
+  specialization?: string | null;
+}
+
+interface AssetFormState {
+  nom: string;
+  type: string;
+  statut: string;
+  numero_de_serie: string;
+  marque: string;
+  modele: string;
+  localisation: string;
+  departement: string;
+  assigned_to_user_id: string;
+  date_d_achat: string;
+  date_de_fin_garantie: string;
+  prix_d_achat: string;
+  fournisseur: string;
+  notes: string;
+}
+
+const assetStatusLabels: Record<string, string> = {
+  in_service: "En service",
+  en_maintenance: "En maintenance",
+  en_panne: "En panne",
+  en_stock: "En stock",
+  reformes: "Réformés",
+};
+
+const assetStatusColors: Record<
+  string,
+  { badgeBg: string; badgeBorder: string; badgeText: string; chipBg: string; chipText: string }
+> = {
+  in_service: {
+    badgeBg: "rgba(16, 185, 129, 0.1)",
+    badgeBorder: "rgba(16, 185, 129, 0.3)",
+    badgeText: "#047857",
+    chipBg: "rgba(16, 185, 129, 0.1)",
+    chipText: "#047857",
+  },
+  en_maintenance: {
+    badgeBg: "rgba(245, 158, 11, 0.08)",
+    badgeBorder: "rgba(245, 158, 11, 0.3)",
+    badgeText: "#92400e",
+    chipBg: "rgba(245, 158, 11, 0.08)",
+    chipText: "#92400e",
+  },
+  en_panne: {
+    badgeBg: "rgba(248, 113, 113, 0.12)",
+    badgeBorder: "rgba(248, 113, 113, 0.3)",
+    badgeText: "#b91c1c",
+    chipBg: "rgba(248, 113, 113, 0.12)",
+    chipText: "#b91c1c",
+  },
+  en_stock: {
+    badgeBg: "rgba(59, 130, 246, 0.06)",
+    badgeBorder: "rgba(59, 130, 246, 0.3)",
+    badgeText: "#1d4ed8",
+    chipBg: "rgba(59, 130, 246, 0.06)",
+    chipText: "#1d4ed8",
+  },
+  reformes: {
+    badgeBg: "rgba(148, 163, 184, 0.12)",
+    badgeBorder: "rgba(148, 163, 184, 0.4)",
+    badgeText: "#4b5563",
+    chipBg: "rgba(148, 163, 184, 0.12)",
+    chipText: "#4b5563",
+  },
+};
+
+const assetTypeLabels: Record<string, string> = {
+  desktop: "Ordinateur fixe",
+  laptop: "Ordinateur portable",
+  printer: "Imprimante",
+  monitor: "Écran",
+  mobile: "Mobile",
+  tablet: "Tablette",
+  phone: "Téléphone",
+  network: "Équipement réseau",
+  keyboard: "Clavier",
+  mouse: "Souris",
+  other: "Autre",
+};
 
 /** Liste déroulante des filtres (survol orange sur les options) – version Technicien */
 function OrangeSelect({
@@ -193,10 +317,36 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [openActionsMenuFor, setOpenActionsMenuFor] = useState<string | null>(null);
   const [ticketSearchQuery, setTicketSearchQuery] = useState<string>("");
-  // Filtres visuels pour les actifs (Technicien) – uniquement pour l'UI
+  // Filtres visuels pour les actifs (Technicien)
   const [assetStatusFilter, setAssetStatusFilter] = useState<string>("all");
   const [assetTypeFilter, setAssetTypeFilter] = useState<string>("all");
   const [assetDepartmentFilter, setAssetDepartmentFilter] = useState<string>("all");
+  const [assetSearchQuery, setAssetSearchQuery] = useState<string>("");
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState<boolean>(false);
+  const [assetError, setAssetError] = useState<string | null>(null);
+  const [assetTypes, setAssetTypes] = useState<AssetTypeConfig[]>([]);
+  const [assetDepartments, setAssetDepartments] = useState<DepartmentConfig[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [showAssetModal, setShowAssetModal] = useState<boolean>(false);
+  const [assetModalMode, setAssetModalMode] = useState<"create" | "edit">("edit");
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [assetForm, setAssetForm] = useState<AssetFormState>({
+    nom: "",
+    type: "desktop",
+    statut: "en_stock",
+    numero_de_serie: "",
+    marque: "",
+    modele: "",
+    localisation: "",
+    departement: "",
+    assigned_to_user_id: "",
+    date_d_achat: "",
+    date_de_fin_garantie: "",
+    prix_d_achat: "",
+    fournisseur: "",
+    notes: "",
+  });
 
   // Fonction pour déterminer la section active basée sur l'URL
   function getActiveSectionFromPath(): string {
@@ -216,6 +366,111 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     const sectionFromPath = getActiveSectionFromPath();
     setActiveSection(sectionFromPath);
   }, [location.pathname]);
+
+  async function loadAssets(): Promise<void> {
+    if (!token || token.trim() === "" || currentActiveSection !== "actifs") return;
+    setIsLoadingAssets(true);
+    setAssetError(null);
+    try {
+      const url = new URL("http://localhost:8000/assets/", "http://localhost:8000");
+      if (assetStatusFilter !== "all") url.searchParams.append("status", assetStatusFilter);
+      if (assetTypeFilter !== "all") url.searchParams.append("type", assetTypeFilter);
+      if (assetDepartmentFilter !== "all") url.searchParams.append("department", assetDepartmentFilter);
+      if (assetSearchQuery.trim() !== "") url.searchParams.append("search", assetSearchQuery.trim());
+      const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        setAssetError("Erreur lors du chargement des actifs.");
+        setAssets([]);
+        return;
+      }
+      const data: Asset[] = await res.json();
+      setAssets(data || []);
+    } catch (err) {
+      console.error("Erreur chargement actifs:", err);
+      setAssetError("Erreur lors du chargement des actifs.");
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  }
+
+  async function loadAssetTypes(): Promise<void> {
+    if (!token || token.trim() === "") return;
+    try {
+      const res = await fetch("http://localhost:8000/asset-types", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data: AssetTypeConfig[] = await res.json();
+      setAssetTypes(data || []);
+    } catch (err) {
+      console.error("Erreur chargement types d'actifs:", err);
+    }
+  }
+
+  async function loadAssetDepartments(): Promise<void> {
+    if (!token || token.trim() === "") return;
+    try {
+      const res = await fetch("http://localhost:8000/departments", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data: DepartmentConfig[] = await res.json();
+      setAssetDepartments(data || []);
+    } catch (err) {
+      console.error("Erreur chargement départements:", err);
+    }
+  }
+
+  async function loadTechnicians(): Promise<void> {
+    if (!token || token.trim() === "") return;
+    try {
+      const res = await fetch("http://localhost:8000/users/technicians", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data: Technician[] = await res.json();
+      setTechnicians(data || []);
+    } catch (err) {
+      console.error("Erreur chargement techniciens:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (!token || currentActiveSection !== "actifs") return;
+    void loadAssets();
+  }, [token, currentActiveSection, assetStatusFilter, assetTypeFilter, assetDepartmentFilter, assetSearchQuery]);
+
+  useEffect(() => {
+    if (!token || currentActiveSection !== "actifs") return;
+    void loadAssetTypes();
+    void loadAssetDepartments();
+    void loadTechnicians();
+  }, [token, currentActiveSection]);
+
+  const filteredAssets: Asset[] = assets.filter((asset) => {
+    if (assetStatusFilter !== "all" && asset.statut !== assetStatusFilter) return false;
+    if (assetTypeFilter !== "all" && asset.type !== assetTypeFilter) return false;
+    if (assetDepartmentFilter !== "all" && asset.departement !== assetDepartmentFilter) return false;
+    if (assetSearchQuery.trim() !== "") {
+      const q = assetSearchQuery.trim().toLowerCase();
+      const match =
+        asset.nom.toLowerCase().includes(q) ||
+        (asset.numero_de_serie || "").toLowerCase().includes(q) ||
+        (asset.marque || "").toLowerCase().includes(q) ||
+        (asset.modele || "").toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  const totalAssetsTech = assets.length;
+  const inServiceCountTech = assets.filter((a) => a.statut === "in_service").length;
+  const inMaintenanceCountTech = assets.filter((a) => a.statut === "en_maintenance").length;
+  const inPanneCountTech = assets.filter((a) => a.statut === "en_panne").length;
+  const inStockCountTech = assets.filter((a) => a.statut === "en_stock").length;
+  const reformedCountTech = assets.filter((a) => a.statut === "reformes").length;
+  const totalValueTech = assets.reduce((sum, a) => sum + (a.prix_d_achat || 0), 0);
+  const warrantiesExpiringCountTech = assets.filter((a) => {
+    if (!a.date_de_fin_garantie) return false;
+    const end = new Date(a.date_de_fin_garantie);
+    const now = new Date();
+    const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 30 && diffDays >= 0;
+  }).length;
 
   // Fonction pour obtenir le libellé d'une priorité
   function getPriorityLabel(priority: string): string {
@@ -3003,6 +3258,77 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
 
             {currentActiveSection === "actifs" && (
               <div style={{ marginTop: "40px", marginBottom: "24px" }}>
+                {/* Boutons Exporter / Nouvel actif - au-dessus des 8 KPIs, au coin droit */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    marginBottom: "24px",
+                    gap: "12px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 14px",
+                      backgroundColor: "#ffffff",
+                      color: "#111827",
+                      border: "1px solid #9ca3af",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontFamily: "system-ui, -apple-system, sans-serif",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Download size={18} />
+                    Exporter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAssetModalMode("create");
+                      setEditingAsset(null);
+                      setAssetForm({
+                        nom: "",
+                        type: "desktop",
+                        statut: "en_stock",
+                        numero_de_serie: "",
+                        marque: "",
+                        modele: "",
+                        localisation: "",
+                        departement: "",
+                        assigned_to_user_id: "",
+                        date_d_achat: "",
+                        date_de_fin_garantie: "",
+                        prix_d_achat: "",
+                        fournisseur: "",
+                        notes: "",
+                      });
+                      setShowAssetModal(true);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 14px",
+                      backgroundColor: "hsl(226, 34%, 15%)",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontFamily: "system-ui, -apple-system, sans-serif",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Plus size={18} />
+                    Nouvel actif
+                  </button>
+                </div>
                 <div
                   style={{
                     display: "grid",
@@ -3037,7 +3363,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Monitor size={18} color="#4b5563" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{totalAssetsTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Total Actifs</div>
                     </div>
                   </div>
@@ -3069,7 +3395,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <CheckCircle size={18} color="#16a34a" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inServiceCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En service</div>
                     </div>
                   </div>
@@ -3101,7 +3427,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Wrench size={18} color="#f97316" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inMaintenanceCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En maintenance</div>
                     </div>
                   </div>
@@ -3133,7 +3459,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <AlertTriangle size={18} color="#ef4444" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inPanneCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En panne</div>
                     </div>
                   </div>
@@ -3165,7 +3491,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Package size={18} color="#2563eb" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inStockCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En stock</div>
                     </div>
                   </div>
@@ -3197,7 +3523,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Archive size={18} color="#4b5563" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{reformedCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Réformés</div>
                     </div>
                   </div>
@@ -3229,7 +3555,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Banknote size={18} color="#16a34a" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0 FCFA</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{totalValueTech.toLocaleString("fr-FR")} FCFA</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Valeur totale</div>
                     </div>
                   </div>
@@ -3261,7 +3587,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       <Clock size={18} color="#f97316" />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{warrantiesExpiringCountTech}</div>
                       <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Garanties expirant</div>
                       <div style={{ fontSize: "11px", color: "#9ca3af" }}>dans 30 jours</div>
                     </div>
@@ -3300,6 +3626,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                     <input
                       type="text"
                       placeholder="Rechercher par nom, n° série, marque..."
+                      value={assetSearchQuery}
+                      onChange={(e) => setAssetSearchQuery(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "10px 14px 10px 40px",
@@ -3335,6 +3663,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       onChange={setAssetTypeFilter}
                       options={[
                         { value: "all", label: "Tous les types" },
+                        ...assetTypes.map((t) => ({ value: t.code, label: t.label })),
                       ]}
                     />
                   </div>
@@ -3346,12 +3675,404 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       onChange={setAssetDepartmentFilter}
                       options={[
                         { value: "all", label: "Tous les départements" },
+                        ...assetDepartments.map((d) => ({ value: d.name, label: d.name })),
                       ]}
                     />
                   </div>
                 </div>
+
+                {/* Liste des actifs sous forme de cartes */}
+                <div
+                  style={{
+                    marginTop: "24px",
+                    maxWidth: "1200px",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    columnGap: "24px",
+                    rowGap: "24px",
+                    alignItems: "stretch",
+                  }}
+                >
+                  {assetError && (
+                    <div
+                      style={{
+                        gridColumn: "1 / -1",
+                        padding: "12px 16px",
+                        borderRadius: "12px",
+                        backgroundColor: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        color: "#b91c1c",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {assetError}
+                    </div>
+                  )}
+
+                  {isLoadingAssets && !assets.length ? (
+                    <div
+                      style={{
+                        gridColumn: "1 / -1",
+                        padding: "32px",
+                        textAlign: "center",
+                        color: "#6b7280",
+                        fontSize: "14px",
+                      }}
+                    >
+                      Chargement des actifs...
+                    </div>
+                  ) : null}
+
+                  {!isLoadingAssets && filteredAssets.length === 0 && !assetError && (
+                    <div
+                      style={{
+                        gridColumn: "1 / -1",
+                        padding: "32px",
+                        borderRadius: "16px",
+                        border: "1px dashed #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        textAlign: "center",
+                        fontSize: "14px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      Aucun actif trouvé pour les filtres actuels.
+                    </div>
+                  )}
+
+                  {filteredAssets.map((asset) => {
+                    const statusConfig = assetStatusColors[asset.statut] || assetStatusColors.en_stock;
+                    const AssetIcon =
+                      asset.type === "desktop" ? HardDrive
+                      : asset.type === "laptop" ? Laptop
+                      : asset.type === "printer" ? Printer
+                      : asset.type === "monitor" ? Monitor
+                      : asset.type === "keyboard" ? Keyboard
+                      : asset.type === "mouse" ? Mouse
+                      : asset.type === "phone" ? Phone
+                      : asset.type === "tablet" ? Tablet
+                      : asset.type === "network" ? Network
+                      : HardDrive;
+                    const isWarrantyExpiring = (() => {
+                      if (!asset.date_de_fin_garantie) return false;
+                      const end = new Date(asset.date_de_fin_garantie);
+                      const now = new Date();
+                      const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                      return diffDays <= 30;
+                    })();
+                    const formattedWarranty = asset.date_de_fin_garantie
+                      ? new Date(asset.date_de_fin_garantie).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
+                      : null;
+                    const warrantyHighlight = isWarrantyExpiring || asset.statut === "en_panne" || asset.statut === "in_service" || asset.statut === "en_maintenance" || asset.statut === "reformes";
+                    return (
+                      <div
+                        key={asset.id}
+                        style={{
+                          backgroundColor: "#ffffff",
+                          borderRadius: "16px",
+                          padding: "20px 24px",
+                          border: "1px solid #E5EAF1",
+                          boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
+                          cursor: "default",
+                          transition: "all 0.3s ease",
+                          minHeight: "300px",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 14px 35px rgba(15,23,42,0.12)";
+                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.3)";
+                          (e.currentTarget as HTMLDivElement).style.transform = "translateY(-1px)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 24px rgba(15,23,42,0.04)";
+                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(229,231,235,0.9)";
+                          (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", paddingBottom: "6px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                            <div style={{ padding: "10px", borderRadius: "14px", backgroundColor: "#f3f4f6", color: "#6b7280", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                              <AssetIcon size={20} color="#4b5563" />
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+                              <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.nom}</h3>
+                              <p style={{ margin: 0, fontSize: "13px", color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.marque} {asset.modele}</p>
+                            </div>
+                          </div>
+                          <div style={{ padding: "4px 12px", borderRadius: "999px", border: `1px solid ${statusConfig.badgeBorder}`, backgroundColor: statusConfig.badgeBg, fontSize: "11px", fontWeight: 500, color: statusConfig.badgeText, whiteSpace: "nowrap", flexShrink: 0, marginLeft: "auto", marginRight: "4px", marginTop: "2px", textAlign: "center" }}>{assetStatusLabels[asset.statut] || asset.statut}</div>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 10px", fontSize: "12px", color: "#6b7280" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <QrCode size={16} color="#9ca3af" />
+                            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.numero_de_serie}</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+                            <span style={{ borderRadius: "999px", border: "1px solid #e5e7eb", padding: "2px 8px", fontSize: "11px", color: "#4b5563", backgroundColor: "#ffffff" }}>{assetTypeLabels[asset.type] || asset.type || "Type inconnu"}</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <MapPin size={16} color="#9ca3af" />
+                            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.localisation}</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+                            <User size={16} color={asset.assigned_to_name ? "#9ca3af" : "rgba(156,163,175,0.7)"} />
+                            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontStyle: asset.assigned_to_name ? "normal" : "italic", color: asset.assigned_to_name ? "#6b7280" : "rgba(156,163,175,0.8)" }}>{asset.assigned_to_name || "Non assigné"}</span>
+                          </div>
+                        </div>
+                        {formattedWarranty && (
+                          <div
+                            style={{
+                              marginTop: "12px",
+                              padding: "7px 10px",
+                              borderRadius: "10px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              backgroundColor: warrantyHighlight ? "rgba(249, 115, 22, 0.1)" : "#f3f4f6",
+                              color: warrantyHighlight ? "#ea580c" : "#4b5563",
+                              fontSize: "12px",
+                            }}
+                          >
+                            <Calendar size={16} color={warrantyHighlight ? "#ea580c" : "#6b7280"} />
+                            <span>Garantie jusqu&apos;au {formattedWarranty}</span>
+                          </div>
+                        )}
+                        <div style={{ display: "flex", gap: "8px", paddingTop: "16px" }}>
+                          <button type="button" style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "7px 10px", borderRadius: "12px", border: "1px solid #e5e7eb", backgroundColor: "#ffffff", fontSize: "13px", fontWeight: 500, color: "#1d4ed8", cursor: "pointer" }} onClick={() => alert(`Détails de l'actif: ${asset.nom} (${asset.numero_de_serie})`)}>
+                            <Eye size={16} />
+                            <span>Détails</span>
+                          </button>
+                          <button
+                            type="button"
+                            style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "7px 10px", borderRadius: "12px", border: "none", backgroundColor: "#111827", fontSize: "13px", fontWeight: 500, color: "#ffffff", cursor: "pointer" }}
+                            onClick={() => {
+                              setAssetModalMode("edit");
+                              setEditingAsset(asset);
+                              setAssetForm({
+                                nom: asset.nom || "",
+                                type: asset.type || "desktop",
+                                statut: asset.statut || "en_stock",
+                                numero_de_serie: asset.numero_de_serie || "",
+                                marque: asset.marque || "",
+                                modele: asset.modele || "",
+                                localisation: asset.localisation || "",
+                                departement: asset.departement || "",
+                                assigned_to_user_id: asset.assigned_to_user_id ? String(asset.assigned_to_user_id) : "",
+                                date_d_achat: asset.date_d_achat?.slice(0, 10) || "",
+                                date_de_fin_garantie: asset.date_de_fin_garantie?.slice(0, 10) || "",
+                                prix_d_achat: asset.prix_d_achat != null ? String(asset.prix_d_achat) : "",
+                                fournisseur: asset.fournisseur || "",
+                                notes: asset.notes || "",
+                              });
+                              setShowAssetModal(true);
+                            }}
+                          >
+                            <Pencil size={16} />
+                            <span>Modifier</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
+
+              {/* Modal Modifier l'actif (Technicien) */}
+              {showAssetModal && (
+                <div
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.80)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1200,
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "#ffffff",
+                      borderRadius: "16px",
+                      boxShadow: "0 24px 60px rgba(15,23,42,0.35)",
+                      width: "100%",
+                      maxWidth: "720px",
+                      maxHeight: "85vh",
+                      display: "flex",
+                      flexDirection: "column",
+                      overflow: "hidden",
+                      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+                    }}
+                  >
+                    <div style={{ padding: "18px 22px 12px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                        <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 600, color: "#111827" }}>
+                          {assetModalMode === "create" ? "Nouvel actif" : "Modifier l&apos;actif"}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#6b7280" }}>
+                          {assetModalMode === "create" ? "Renseignez les informations de l&apos;équipement informatique." : "Modifiez les informations de l&apos;équipement informatique."}
+                        </p>
+                      </div>
+                      <button type="button" onClick={() => setShowAssetModal(false)} style={{ border: "none", background: "transparent", borderRadius: "999px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#6b7280" }}>
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <div style={{ padding: "18px 22px 16px", overflowY: "auto" }}>
+                      <div style={{ marginBottom: "18px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.09em", textTransform: "uppercase", color: "#6b7280", marginBottom: "10px" }}>Informations générales</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+                          <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Nom de l&apos;actif *</label>
+                            <input type="text" value={assetForm.nom} onChange={(e) => setAssetForm((f) => ({ ...f, nom: e.target.value }))} placeholder="Ex: Dell OptiPlex 7090" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Type *</label>
+                            <select value={assetForm.type} onChange={(e) => setAssetForm((f) => ({ ...f, type: e.target.value }))} style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", backgroundColor: "#ffffff" }}>
+                              <option value="desktop">Ordinateur fixe</option>
+                              <option value="laptop">Ordinateur portable</option>
+                              <option value="printer">Imprimante</option>
+                              <option value="monitor">Écran</option>
+                              <option value="mobile">Mobile</option>
+                              <option value="tablet">Tablette</option>
+                              <option value="phone">Téléphone</option>
+                              <option value="network">Équipement réseau</option>
+                              <option value="other">Autre</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Statut *</label>
+                            <select value={assetForm.statut} onChange={(e) => setAssetForm((f) => ({ ...f, statut: e.target.value }))} style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", backgroundColor: "#ffffff" }}>
+                              <option value="en_stock">En stock</option>
+                              <option value="in_service">En service</option>
+                              <option value="en_maintenance">En maintenance</option>
+                              <option value="en_panne">En panne</option>
+                              <option value="reformes">Réformés</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>N° de série *</label>
+                            <input type="text" value={assetForm.numero_de_serie} onChange={(e) => setAssetForm((f) => ({ ...f, numero_de_serie: e.target.value }))} placeholder="Ex: DELL-7090-001" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Marque *</label>
+                            <input type="text" value={assetForm.marque} onChange={(e) => setAssetForm((f) => ({ ...f, marque: e.target.value }))} placeholder="Ex: Dell" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Modèle</label>
+                            <input type="text" value={assetForm.modele} onChange={(e) => setAssetForm((f) => ({ ...f, modele: e.target.value }))} placeholder="Ex: Dell OptiPlex 7090" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: "18px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.09em", textTransform: "uppercase", color: "#6b7280", marginBottom: "10px" }}>Localisation & attribution</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Localisation</label>
+                            <input type="text" value={assetForm.localisation} onChange={(e) => setAssetForm((f) => ({ ...f, localisation: e.target.value }))} placeholder="Ex: Bâtiment A - Étage 2" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Département</label>
+                            <input type="text" value={assetForm.departement} onChange={(e) => setAssetForm((f) => ({ ...f, departement: e.target.value }))} placeholder="Ex: Marketing" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div style={{ gridColumn: "1 / -1" }}>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Assigné à</label>
+                            <select value={assetForm.assigned_to_user_id} onChange={(e) => setAssetForm((f) => ({ ...f, assigned_to_user_id: e.target.value }))} style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", backgroundColor: "#ffffff" }}>
+                              <option value="">Non assigné</option>
+                              {technicians.map((t) => (
+                                <option key={t.id} value={t.id}>{t.full_name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: "18px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.09em", textTransform: "uppercase", color: "#6b7280", marginBottom: "10px" }}>Achat & garantie</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Date d&apos;achat</label>
+                            <input type="date" value={assetForm.date_d_achat} onChange={(e) => setAssetForm((f) => ({ ...f, date_d_achat: e.target.value }))} style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Fin de garantie</label>
+                            <input type="date" value={assetForm.date_de_fin_garantie} onChange={(e) => setAssetForm((f) => ({ ...f, date_de_fin_garantie: e.target.value }))} style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Prix d&apos;achat (FCFA)</label>
+                            <input type="number" min="0" step="0.01" value={assetForm.prix_d_achat} onChange={(e) => setAssetForm((f) => ({ ...f, prix_d_achat: e.target.value }))} placeholder="Ex: 850" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Fournisseur</label>
+                            <input type="text" value={assetForm.fournisseur} onChange={(e) => setAssetForm((f) => ({ ...f, fournisseur: e.target.value }))} placeholder="Ex: Dell Technologies" style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", outline: "none" }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.09em", textTransform: "uppercase", color: "#6b7280", marginBottom: "10px" }}>Notes</div>
+                        <label style={{ display: "block", marginBottom: "4px", fontSize: "13px", fontWeight: 500, color: "#111827" }}>Informations supplémentaires</label>
+                        <textarea rows={3} value={assetForm.notes} onChange={(e) => setAssetForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Informations supplémentaires..." style={{ width: "100%", padding: "9px 11px", borderRadius: "10px", border: "1px solid #e5e7eb", fontSize: "14px", resize: "vertical", minHeight: "70px" }} />
+                      </div>
+                    </div>
+                    <div style={{ padding: "12px 22px 16px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end", gap: "10px", backgroundColor: "#f9fafb" }}>
+                      <button type="button" onClick={() => setShowAssetModal(false)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #e5e7eb", backgroundColor: "#ffffff", fontSize: "14px", fontWeight: 500, color: "#111827", cursor: "pointer" }}>Annuler</button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!token) return;
+                          if (!assetForm.nom.trim() || !assetForm.type || !assetForm.statut || !assetForm.numero_de_serie.trim() || !assetForm.marque.trim() || !assetForm.localisation.trim() || !assetForm.departement.trim() || !assetForm.date_d_achat) {
+                            alert("Merci de renseigner tous les champs obligatoires.");
+                            return;
+                          }
+                          const assignedUserId = assetForm.assigned_to_user_id ? Number(assetForm.assigned_to_user_id) : null;
+                          const assignedUser = technicians.find((t) => String(t.id) === String(assignedUserId)) || null;
+                          const payload: any = {
+                            nom: assetForm.nom.trim(),
+                            type: assetForm.type,
+                            numero_de_serie: assetForm.numero_de_serie.trim(),
+                            marque: assetForm.marque.trim(),
+                            modele: assetForm.modele.trim(),
+                            statut: assetForm.statut,
+                            localisation: assetForm.localisation.trim(),
+                            departement: assetForm.departement.trim(),
+                            date_d_achat: assetForm.date_d_achat,
+                            date_de_fin_garantie: assetForm.date_de_fin_garantie || null,
+                            prix_d_achat: assetForm.prix_d_achat ? Number(assetForm.prix_d_achat) : null,
+                            fournisseur: assetForm.fournisseur || null,
+                            assigned_to_user_id: assignedUserId,
+                            assigned_to_name: assignedUser?.full_name || null,
+                            specifications: null,
+                            notes: assetForm.notes || null,
+                          };
+                          try {
+                            const endpoint = assetModalMode === "edit" && editingAsset
+                              ? `http://localhost:8000/assets/${editingAsset.id}`
+                              : "http://localhost:8000/assets/";
+                            const method = assetModalMode === "edit" && editingAsset ? "PUT" : "POST";
+                            const res = await fetch(endpoint, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
+                            if (!res.ok) {
+                              const error = await res.json().catch(() => null);
+                              alert(error?.detail || (assetModalMode === "create" ? "Erreur lors de la création de l'actif." : "Erreur lors de la mise à jour de l'actif."));
+                              return;
+                            }
+                            await loadAssets();
+                            setShowAssetModal(false);
+                            setEditingAsset(null);
+                          } catch (err) {
+                            console.error(err);
+                            alert(assetModalMode === "create" ? "Erreur lors de la création de l'actif." : "Erreur lors de la mise à jour de l'actif.");
+                          }
+                        }}
+                        style={{ padding: "10px 20px", background: "#F58220", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
+                      >
+                        {assetModalMode === "create" ? "Créer l'actif" : "Enregistrer"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             {/* Section Tickets en cours */}
             {currentActiveSection === "tickets-en-cours" && (

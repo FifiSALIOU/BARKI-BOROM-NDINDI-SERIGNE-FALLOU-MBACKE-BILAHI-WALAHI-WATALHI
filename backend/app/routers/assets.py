@@ -139,7 +139,7 @@ def create_asset(
     asset_in: schemas.AssetCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(
-        require_role("Adjoint DSI", "DSI", "Admin")
+        require_role("Adjoint DSI", "DSI", "Admin", "Technicien")
     ),
 ) -> schemas.AssetRead:
     """
@@ -328,7 +328,7 @@ def update_asset(
     asset_in: schemas.AssetCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(
-        require_role("Adjoint DSI", "DSI", "Admin")
+        require_role("Adjoint DSI", "DSI", "Admin", "Technicien")
     ),
 ) -> schemas.AssetRead:
     """Met à jour un actif existant sans supprimer d'autres enregistrements."""
