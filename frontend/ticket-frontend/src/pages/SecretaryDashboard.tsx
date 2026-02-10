@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, Pencil, X, FolderTree, Tag } from "lucide-react";
+import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, Pencil, X, FolderTree, Tag, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -100,6 +100,106 @@ interface UserRead {
     name: string;
   } | null;
 }
+
+interface Asset {
+  id: number;
+  nom: string;
+  type: string;
+  numero_de_serie: string;
+  marque: string;
+  modele: string;
+  statut: string;
+  localisation: string;
+  departement: string;
+  date_d_achat: string;
+  date_de_fin_garantie?: string | null;
+  prix_d_achat?: number | null;
+  fournisseur?: string | null;
+  assigned_to_user_id?: number | null;
+  assigned_to_name?: string | null;
+  specifications?: any;
+  notes?: string | null;
+  qr_code?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: number | null;
+}
+
+interface AssetTypeConfig {
+  id: number;
+  code: string;
+  label: string;
+  is_active: boolean;
+}
+
+interface DepartmentConfig {
+  id: number;
+  name: string;
+  is_active: boolean;
+}
+
+const assetStatusLabels: Record<string, string> = {
+  in_service: "En service",
+  en_maintenance: "En maintenance",
+  en_panne: "En panne",
+  en_stock: "En stock",
+  reformes: "Réformés",
+};
+
+const assetStatusColors: Record<
+  string,
+  { badgeBg: string; badgeBorder: string; badgeText: string; chipBg: string; chipText: string }
+> = {
+  in_service: {
+    badgeBg: "rgba(16, 185, 129, 0.1)",
+    badgeBorder: "rgba(16, 185, 129, 0.3)",
+    badgeText: "#047857",
+    chipBg: "rgba(16, 185, 129, 0.1)",
+    chipText: "#047857",
+  },
+  en_maintenance: {
+    badgeBg: "rgba(245, 158, 11, 0.08)",
+    badgeBorder: "rgba(245, 158, 11, 0.3)",
+    badgeText: "#92400e",
+    chipBg: "rgba(245, 158, 11, 0.08)",
+    chipText: "#92400e",
+  },
+  en_panne: {
+    badgeBg: "rgba(248, 113, 113, 0.12)",
+    badgeBorder: "rgba(248, 113, 113, 0.3)",
+    badgeText: "#b91c1c",
+    chipBg: "rgba(248, 113, 113, 0.12)",
+    chipText: "#b91c1c",
+  },
+  en_stock: {
+    badgeBg: "rgba(59, 130, 246, 0.06)",
+    badgeBorder: "rgba(59, 130, 246, 0.3)",
+    badgeText: "#1d4ed8",
+    chipBg: "rgba(59, 130, 246, 0.06)",
+    chipText: "#1d4ed8",
+  },
+  reformes: {
+    badgeBg: "rgba(148, 163, 184, 0.12)",
+    badgeBorder: "rgba(148, 163, 184, 0.4)",
+    badgeText: "#4b5563",
+    chipBg: "rgba(148, 163, 184, 0.12)",
+    chipText: "#4b5563",
+  },
+};
+
+const assetTypeLabels: Record<string, string> = {
+  desktop: "Ordinateur fixe",
+  laptop: "Ordinateur portable",
+  printer: "Imprimante",
+  monitor: "Écran",
+  mobile: "Mobile",
+  tablet: "Tablette",
+  phone: "Téléphone",
+  network: "Équipement réseau",
+  keyboard: "Clavier",
+  mouse: "Souris",
+  other: "Autre",
+};
 
 // Composant Label personnalisé pour les donut charts avec labels externes et lignes de connexion
 const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, fill, value }: any) => {
@@ -319,10 +419,16 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     ticketType: "all",
     priority: "all"
   });
-  // Filtres visuels pour les actifs (Adjoint DSI) – n'affectent pas la logique
+  // Filtres visuels pour les actifs (Adjoint DSI)
   const [assetStatusFilter, setAssetStatusFilter] = useState<string>("all");
   const [assetTypeFilter, setAssetTypeFilter] = useState<string>("all");
   const [assetDepartmentFilter, setAssetDepartmentFilter] = useState<string>("all");
+  const [assetSearchQuery, setAssetSearchQuery] = useState<string>("");
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState<boolean>(false);
+  const [assetError, setAssetError] = useState<string | null>(null);
+  const [assetTypes, setAssetTypes] = useState<AssetTypeConfig[]>([]);
+  const [assetDepartments, setAssetDepartments] = useState<DepartmentConfig[]>([]);
   const [showOutputFormat, setShowOutputFormat] = useState<boolean>(false);
   const [outputFormat, setOutputFormat] = useState<string>("");
   const [recentReports, setRecentReports] = useState<any[]>([]);
@@ -418,6 +524,98 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       .finally(() => { if (!cancelled) setLoadingCategories(false); });
     return () => { cancelled = true; };
   }, [currentActiveSection, roleName, token]);
+
+  async function loadAssets(): Promise<void> {
+    if (!token || token.trim() === "" || currentActiveSection !== "actifs" || roleName !== "Adjoint DSI") return;
+    setIsLoadingAssets(true);
+    setAssetError(null);
+    try {
+      const url = new URL("http://localhost:8000/assets/", "http://localhost:8000");
+      if (assetStatusFilter !== "all") url.searchParams.append("status", assetStatusFilter);
+      if (assetTypeFilter !== "all") url.searchParams.append("type", assetTypeFilter);
+      if (assetDepartmentFilter !== "all") url.searchParams.append("department", assetDepartmentFilter);
+      if (assetSearchQuery.trim() !== "") url.searchParams.append("search", assetSearchQuery.trim());
+      const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        setAssetError("Erreur lors du chargement des actifs.");
+        setAssets([]);
+        return;
+      }
+      const data: Asset[] = await res.json();
+      setAssets(data || []);
+    } catch (err) {
+      console.error("Erreur chargement actifs:", err);
+      setAssetError("Erreur lors du chargement des actifs.");
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  }
+
+  async function loadAssetTypes(): Promise<void> {
+    if (!token || token.trim() === "") return;
+    try {
+      const res = await fetch("http://localhost:8000/asset-types", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data: AssetTypeConfig[] = await res.json();
+      setAssetTypes(data || []);
+    } catch (err) {
+      console.error("Erreur chargement types d'actifs:", err);
+    }
+  }
+
+  async function loadAssetDepartments(): Promise<void> {
+    if (!token || token.trim() === "") return;
+    try {
+      const res = await fetch("http://localhost:8000/departments", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return;
+      const data: DepartmentConfig[] = await res.json();
+      setAssetDepartments(data || []);
+    } catch (err) {
+      console.error("Erreur chargement départements:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (!token || currentActiveSection !== "actifs" || roleName !== "Adjoint DSI") return;
+    void loadAssets();
+  }, [token, currentActiveSection, roleName, assetStatusFilter, assetTypeFilter, assetDepartmentFilter, assetSearchQuery]);
+
+  useEffect(() => {
+    if (!token || currentActiveSection !== "actifs" || roleName !== "Adjoint DSI") return;
+    void loadAssetTypes();
+    void loadAssetDepartments();
+  }, [token, currentActiveSection, roleName]);
+
+  const filteredAssets: Asset[] = assets.filter((asset) => {
+    if (assetStatusFilter !== "all" && asset.statut !== assetStatusFilter) return false;
+    if (assetTypeFilter !== "all" && asset.type !== assetTypeFilter) return false;
+    if (assetDepartmentFilter !== "all" && asset.departement !== assetDepartmentFilter) return false;
+    if (assetSearchQuery.trim() !== "") {
+      const q = assetSearchQuery.trim().toLowerCase();
+      const match =
+        asset.nom.toLowerCase().includes(q) ||
+        (asset.numero_de_serie || "").toLowerCase().includes(q) ||
+        (asset.marque || "").toLowerCase().includes(q) ||
+        (asset.modele || "").toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  const totalAssetsAdjoint = assets.length;
+  const inServiceCountAdjoint = assets.filter((a) => a.statut === "in_service").length;
+  const inMaintenanceCountAdjoint = assets.filter((a) => a.statut === "en_maintenance").length;
+  const inPanneCountAdjoint = assets.filter((a) => a.statut === "en_panne").length;
+  const inStockCountAdjoint = assets.filter((a) => a.statut === "en_stock").length;
+  const reformedCountAdjoint = assets.filter((a) => a.statut === "reformes").length;
+  const totalValueAdjoint = assets.reduce((sum, a) => sum + (a.prix_d_achat || 0), 0);
+  const warrantiesExpiringCountAdjoint = assets.filter((a) => {
+    if (!a.date_de_fin_garantie) return false;
+    const end = new Date(a.date_de_fin_garantie);
+    const now = new Date();
+    const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 30 && diffDays >= 0;
+  }).length;
 
   // Fonction pour obtenir le libellé d'une priorité
   function getPriorityLabel(priority: string): string {
@@ -6802,7 +7000,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   </div>
                   {/* Valeur + libellé */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{totalAssetsAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Total Actifs</div>
                   </div>
                 </div>
@@ -6834,7 +7032,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <CheckCircle size={18} color="#16a34a" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inServiceCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En service</div>
                   </div>
                 </div>
@@ -6866,7 +7064,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <Wrench size={18} color="#f97316" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inMaintenanceCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En maintenance</div>
                   </div>
                 </div>
@@ -6898,7 +7096,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <AlertTriangle size={18} color="#ef4444" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inPanneCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En panne</div>
                   </div>
                 </div>
@@ -6930,7 +7128,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <Package size={18} color="#2563eb" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{inStockCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En stock</div>
                   </div>
                 </div>
@@ -6962,7 +7160,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <Archive size={18} color="#4b5563" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{reformedCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Réformés</div>
                   </div>
                 </div>
@@ -6994,7 +7192,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <Banknote size={18} color="#16a34a" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0 FCFA</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{totalValueAdjoint.toLocaleString("fr-FR")} FCFA</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Valeur totale</div>
                   </div>
                 </div>
@@ -7026,7 +7224,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <Clock size={18} color="#f97316" />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>{warrantiesExpiringCountAdjoint}</div>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Garanties expirant</div>
                     <div style={{ fontSize: "11px", color: "#9ca3af" }}>dans 30 jours</div>
                   </div>
@@ -7065,6 +7263,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <input
                     type="text"
                     placeholder="Rechercher par nom, n° série, marque..."
+                    value={assetSearchQuery}
+                    onChange={(e) => setAssetSearchQuery(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "10px 14px 10px 40px",
@@ -7084,7 +7284,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     onChange={setAssetStatusFilter}
                     options={[
                       { value: "all", label: "Tous les statuts" },
-                      { value: "en_service", label: "En service" },
+                      { value: "in_service", label: "En service" },
                       { value: "en_maintenance", label: "En maintenance" },
                       { value: "en_panne", label: "En panne" },
                       { value: "reformes", label: "Réformés" },
@@ -7100,6 +7300,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     onChange={setAssetTypeFilter}
                     options={[
                       { value: "all", label: "Tous les types" },
+                      ...assetTypes.map((t) => ({ value: t.code, label: t.label })),
                     ]}
                   />
                 </div>
@@ -7111,9 +7312,185 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     onChange={setAssetDepartmentFilter}
                     options={[
                       { value: "all", label: "Tous les départements" },
+                      ...assetDepartments.map((d) => ({ value: d.name, label: d.name })),
                     ]}
                   />
                 </div>
+              </div>
+
+              {/* Liste des actifs sous forme de cartes */}
+              <div
+                style={{
+                  marginTop: "24px",
+                  maxWidth: "1200px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  columnGap: "24px",
+                  rowGap: "24px",
+                  alignItems: "stretch",
+                }}
+              >
+                {assetError && (
+                  <div
+                    style={{
+                      gridColumn: "1 / -1",
+                      padding: "12px 16px",
+                      borderRadius: "12px",
+                      backgroundColor: "#fef2f2",
+                      border: "1px solid #fecaca",
+                      color: "#b91c1c",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {assetError}
+                  </div>
+                )}
+
+                {isLoadingAssets && !assets.length ? (
+                  <div
+                    style={{
+                      gridColumn: "1 / -1",
+                      padding: "32px",
+                      textAlign: "center",
+                      color: "#6b7280",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Chargement des actifs...
+                  </div>
+                ) : null}
+
+                {!isLoadingAssets && filteredAssets.length === 0 && !assetError && (
+                  <div
+                    style={{
+                      gridColumn: "1 / -1",
+                      padding: "32px",
+                      borderRadius: "16px",
+                      border: "1px dashed #e5e7eb",
+                      backgroundColor: "#f9fafb",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      color: "#6b7280",
+                    }}
+                  >
+                    Aucun actif trouvé pour les filtres actuels.
+                  </div>
+                )}
+
+                {filteredAssets.map((asset) => {
+                  const statusConfig = assetStatusColors[asset.statut] || assetStatusColors.en_stock;
+                  const AssetIcon =
+                    asset.type === "desktop" ? HardDrive
+                    : asset.type === "laptop" ? Laptop
+                    : asset.type === "printer" ? Printer
+                    : asset.type === "monitor" ? Monitor
+                    : asset.type === "keyboard" ? Keyboard
+                    : asset.type === "mouse" ? Mouse
+                    : asset.type === "phone" ? Phone
+                    : asset.type === "tablet" ? Tablet
+                    : asset.type === "network" ? Network
+                    : HardDrive;
+                  const isWarrantyExpiring = (() => {
+                    if (!asset.date_de_fin_garantie) return false;
+                    const end = new Date(asset.date_de_fin_garantie);
+                    const now = new Date();
+                    const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    return diffDays <= 30;
+                  })();
+                  const formattedWarranty = asset.date_de_fin_garantie
+                    ? new Date(asset.date_de_fin_garantie).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
+                    : null;
+                  const warrantyHighlight = isWarrantyExpiring || asset.statut === "en_panne" || asset.statut === "in_service" || asset.statut === "en_maintenance" || asset.statut === "reformes";
+                  return (
+                    <div
+                      key={asset.id}
+                      className="asset-card group"
+                      style={{
+                        backgroundColor: "#ffffff",
+                        borderRadius: "16px",
+                        padding: "20px 24px",
+                        border: "1px solid #E5EAF1",
+                        boxShadow: "0 8px 20px rgba(15,23,42,0.06)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "16px",
+                        cursor: "default",
+                        transition: "all 0.3s ease",
+                        minHeight: "300px",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 14px 35px rgba(15,23,42,0.12)";
+                        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.3)";
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 24px rgba(15,23,42,0.04)";
+                        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(229,231,235,0.9)";
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", paddingBottom: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                          <div style={{ padding: "10px", borderRadius: "14px", backgroundColor: "#f3f4f6", color: "#6b7280", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                            <AssetIcon size={20} color="#4b5563" />
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+                            <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.nom}</h3>
+                            <p style={{ margin: 0, fontSize: "13px", color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.marque} {asset.modele}</p>
+                          </div>
+                        </div>
+                        <div style={{ padding: "4px 12px", borderRadius: "999px", border: `1px solid ${statusConfig.badgeBorder}`, backgroundColor: statusConfig.badgeBg, fontSize: "11px", fontWeight: 500, color: statusConfig.badgeText, whiteSpace: "nowrap", flexShrink: 0, marginLeft: "auto", marginRight: "4px", marginTop: "2px", textAlign: "center" }}>{assetStatusLabels[asset.statut] || asset.statut}</div>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 10px", fontSize: "12px", color: "#6b7280" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <QrCode size={16} color="#9ca3af" />
+                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.numero_de_serie}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+                          <span style={{ borderRadius: "999px", border: "1px solid #e5e7eb", padding: "2px 8px", fontSize: "11px", color: "#4b5563", backgroundColor: "#ffffff" }}>{assetTypeLabels[asset.type] || asset.type || "Type inconnu"}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <MapPin size={16} color="#9ca3af" />
+                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{asset.localisation}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+                          <User size={16} color={asset.assigned_to_name ? "#9ca3af" : "rgba(156,163,175,0.7)"} />
+                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontStyle: asset.assigned_to_name ? "normal" : "italic", color: asset.assigned_to_name ? "#6b7280" : "rgba(156,163,175,0.8)" }}>{asset.assigned_to_name || "Non assigné"}</span>
+                        </div>
+                      </div>
+                      {formattedWarranty && (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            padding: "7px 10px",
+                            borderRadius: "10px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            backgroundColor: warrantyHighlight ? "rgba(249, 115, 22, 0.1)" : "#f3f4f6",
+                            color: warrantyHighlight ? "#ea580c" : "#4b5563",
+                            fontSize: "12px",
+                          }}
+                        >
+                          <Calendar size={16} color={warrantyHighlight ? "#ea580c" : "#6b7280"} />
+                          <span>Garantie jusqu&apos;au {formattedWarranty}</span>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: "8px", paddingTop: "16px" }}>
+                        <button type="button" style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "7px 10px", borderRadius: "12px", border: "1px solid #e5e7eb", backgroundColor: "#ffffff", fontSize: "13px", fontWeight: 500, color: "#1d4ed8", cursor: "pointer" }} onClick={() => alert(`Détails de l'actif: ${asset.nom} (${asset.numero_de_serie})`)}>
+                          <Eye size={16} />
+                          <span>Détails</span>
+                        </button>
+                        <button type="button" style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "7px 10px", borderRadius: "12px", border: "none", backgroundColor: "#111827", fontSize: "13px", fontWeight: 500, color: "#ffffff", cursor: "pointer" }} onClick={() => alert(`Modifier l'actif: ${asset.nom}`)}>
+                          <Pencil size={16} />
+                          <span>Modifier</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
