@@ -5287,7 +5287,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         </button>
                       )}
 
-                      {/* Bouton Réouvrir */}
+                      {/* Bouton Rouvrir */}
                       {ticketDetails.status === "rejete" && (
                         <button
                           onClick={() => {
@@ -5296,7 +5296,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           disabled={loading}
                           style={{
                             padding: "10px 20px",
-                            backgroundColor: "#f59e0b",
+                            backgroundColor: "hsl(25, 95%, 53%)",
                             color: "white",
                             border: "none",
                             borderRadius: "6px",
@@ -5305,13 +5305,13 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             fontWeight: "500"
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#d97706";
+                            e.currentTarget.style.backgroundColor = "hsl(25, 95%, 48%)";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#f59e0b";
+                            e.currentTarget.style.backgroundColor = "hsl(25, 95%, 53%)";
                           }}
                         >
-                          Réouvrir
+                          Rouvrir
                         </button>
                       )}
                         </>
@@ -6428,11 +6428,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             style={{ 
                               width: "100%", 
                               padding: "10px 12px", 
-                              background: "transparent", 
+                              background: "hsl(25, 95%, 53%)", 
                               border: "none", 
                               textAlign: "left", 
                               cursor: loading ? "not-allowed" : "pointer",
-                              color: "#111827",
+                              color: "white",
                               fontSize: "14px",
                               display: "block",
                               whiteSpace: "nowrap",
@@ -6604,14 +6604,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             }}
                             onMouseEnter={(e) => {
                               if (!loading) {
-                                e.currentTarget.style.backgroundColor = "#f3f4f6";
+                                e.currentTarget.style.backgroundColor = "hsl(25, 95%, 48%)";
                               }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "transparent";
+                              if (!loading) {
+                                e.currentTarget.style.backgroundColor = "hsl(25, 95%, 53%)";
+                              }
                             }}
-                          >
-                            Réouvrir
+                        >
+                          Rouvrir
                           </button>
                         </div>
                       )}
@@ -8802,12 +8804,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                       if (!loading) {
                                         e.currentTarget.style.backgroundColor = "#f3f4f6";
                                       }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = "transparent";
-                                    }}
-                                  >
-                                    Réouvrir
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!loading) {
+                                      e.currentTarget.style.backgroundColor = "#f59e0b";
+                                    }
+                                  }}
+                                >
+                                  Rouvrir
                                   </button>
                                 </div>
                               )}
@@ -11997,7 +12001,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             maxHeight: "90vh",
             overflowY: "auto"
           }}>
-            <h3 style={{ marginBottom: "16px", color: "#dc3545" }}>Réouvrir le ticket</h3>
+            <h3 style={{ marginBottom: "16px", color: "#dc3545" }}>Rouvrir le ticket</h3>
             
             {/* Affichage du motif de rejet */}
             <div style={{ marginBottom: "20px" }}>
