@@ -651,6 +651,11 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
       return "Validé par utilisateur";
     }
     
+    // Cas spécifique: passage en retraite (ex. en_cours → retraite) : afficher uniquement "Retraité"
+    if (newStatus.includes("retraite") || newStatus.includes("retraité")) {
+      return "Retraité";
+    }
+    
     // Format par défaut: "ancien → nouveau"
     return `${entry.old_status} → ${entry.new_status}`;
   };
