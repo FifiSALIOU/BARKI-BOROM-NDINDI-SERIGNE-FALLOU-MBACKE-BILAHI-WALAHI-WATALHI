@@ -7185,22 +7185,44 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <div
                         key={c.id}
                         style={{
-                          padding: "10px 12px",
-                          background: "white",
-                          borderRadius: "6px",
+                          padding: "12px 14px",
+                          background: "#f8f9fa",
+                          borderRadius: "8px",
                           border: "1px solid #e5e7eb",
                           marginBottom: "8px"
                         }}
                       >
-                        <div style={{ fontSize: "13px", color: "#111827" }}>{c.content}</div>
-                        <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "4px" }}>
-                          {c.user?.full_name || "Utilisateur"} • {new Date(c.created_at).toLocaleString("fr-FR")}
-                          {c.type === "technique" && (
-                            <span style={{ marginLeft: "6px", color: "hsl(25, 95%, 53%)" }}>
-                              (interne)
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                          <div style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            background: "rgba(255, 122, 27, 0.2)",
+                            color: "hsl(25, 95%, 53%)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            flexShrink: 0
+                          }}>
+                            {getInitialsForComment(c.user?.full_name || "Utilisateur")}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
+                              {c.user?.full_name || "Utilisateur"}
                             </span>
-                          )}
+                            <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                              {new Date(c.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })} à {new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            {c.type === "technique" && (
+                              <span style={{ fontSize: "11px", color: "hsl(25, 95%, 53%)" }}>
+                                (interne)
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <div style={{ fontSize: "14px", color: "#111827", marginLeft: "42px" }}>{c.content}</div>
                       </div>
                     ))}
                   </div>
