@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { ClipboardList, Clock3, CheckCircle2, CheckCircle, LayoutDashboard, ChevronLeft, ChevronRight, Bell, Search, Box, Clock, Monitor, Wrench, FileText, UserCheck, RefreshCcw, Users, MessageCircle, AlertTriangle, Package, Archive, Banknote, ChevronDown, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Pencil, User, Calendar, X, Download, Plus } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
@@ -316,6 +317,24 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [openActionsMenuFor, setOpenActionsMenuFor] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (!openActionsMenuFor) setMenuPosition(null);
+  }, [openActionsMenuFor]);
+
+  useEffect(() => {
+    if (!openActionsMenuFor) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (!target.closest("[data-menu-trigger]") && !target.closest("[data-menu-dropdown]")) {
+        setOpenActionsMenuFor(null);
+        setMenuPosition(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [openActionsMenuFor]);
   const [ticketSearchQuery, setTicketSearchQuery] = useState<string>("");
   // Filtres visuels pour les actifs (Technicien)
   const [assetStatusFilter, setAssetStatusFilter] = useState<string>("all");
@@ -2999,9 +3018,17 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                               {/* Menu 3 points */}
                               <div style={{ position: "relative" }}>
                                 <button
+                                  data-menu-trigger
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setOpenActionsMenuFor(openActionsMenuFor === t.id ? null : t.id);
+                                    if (openActionsMenuFor === t.id) {
+                                      setOpenActionsMenuFor(null);
+                                      setMenuPosition(null);
+                                    } else {
+                                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                      setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                                      setOpenActionsMenuFor(t.id);
+                                    }
                                   }}
                                   disabled={loading}
                                   title="Actions"
@@ -3031,46 +3058,22 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                     e.currentTarget.style.backgroundColor = "transparent";
                                   }}
                                 />
-                                {openActionsMenuFor === t.id && (
+                                {openActionsMenuFor === t.id && menuPosition && createPortal(
                                   <div
+                                    data-menu-dropdown
                                     style={{
-                                      position: "absolute",
-                                      top: "100%",
-                                      right: 0,
-                                      marginTop: "4px",
+                                      position: "fixed",
+                                      top: menuPosition.top,
+                                      left: menuPosition.left,
                                       background: "white",
                                       border: "1px solid #e5e7eb",
                                       borderRadius: 8,
                                       boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
                                       minWidth: 220,
-                                      zIndex: 1000,
+                                      zIndex: 10000,
                                       overflow: "visible"
                                     }}
                                     onClick={(e) => e.stopPropagation()}
-                                    ref={(el) => {
-                                      if (el) {
-                                        const button = el.previousElementSibling as HTMLElement;
-                                        if (button) {
-                                          const rect = button.getBoundingClientRect();
-                                          const viewportHeight = window.innerHeight;
-                                          const menuHeight = isInProgress ? 180 : 220;
-                                          const spaceBelow = viewportHeight - rect.bottom;
-                                          const spaceAbove = rect.top;
-                                          
-                                          if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-                                            el.style.bottom = "100%";
-                                            el.style.top = "auto";
-                                            el.style.marginBottom = "4px";
-                                            el.style.marginTop = "0";
-                                          } else {
-                                            el.style.top = "100%";
-                                            el.style.bottom = "auto";
-                                            el.style.marginTop = "4px";
-                                            el.style.marginBottom = "0";
-                                          }
-                                        }
-                                      }
-                                    }}
                                   >
                                     <button
                                       onClick={() => { loadTicketDetails(t.id); setOpenActionsMenuFor(null); }}
@@ -3200,7 +3203,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                       Marquer résolu
                                     </button>
                                     )}
-                                  </div>
+                                  </div>,
+                                  document.body
                                 )}
                               </div>
                             </div>
@@ -4247,11 +4251,19 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                             {/* Menu 3 points */}
                             <div style={{ position: "relative" }}>
                               <button
+                                data-menu-trigger
                                 onClick={(e) => { 
                                   e.stopPropagation(); 
-                                  setOpenActionsMenuFor(openActionsMenuFor === t.id ? null : t.id);
-                                  }}
-                                  disabled={loading}
+                                  if (openActionsMenuFor === t.id) {
+                                    setOpenActionsMenuFor(null);
+                                    setMenuPosition(null);
+                                  } else {
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                                    setOpenActionsMenuFor(t.id);
+                                  }
+                                }}
+                                disabled={loading}
                                   title="Actions"
                                   aria-label="Actions"
                                   style={{
@@ -4279,46 +4291,22 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   e.currentTarget.style.backgroundColor = "transparent";
                                 }}
                               />
-                              {openActionsMenuFor === t.id && (
+                              {openActionsMenuFor === t.id && menuPosition && createPortal(
                                   <div
+                                    data-menu-dropdown
                                     style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    right: 0,
-                                    marginTop: "4px",
+                                      position: "fixed",
+                                      top: menuPosition.top,
+                                      left: menuPosition.left,
                                       background: "white",
                                       border: "1px solid #e5e7eb",
                                       borderRadius: 8,
                                       boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
                                       minWidth: 220,
-                                    zIndex: 1000,
-                                    overflow: "visible"
+                                      zIndex: 10000,
+                                      overflow: "visible"
                                     }}
                                     onClick={(e) => e.stopPropagation()}
-                                  ref={(el) => {
-                                    if (el) {
-                                      const button = el.previousElementSibling as HTMLElement;
-                                      if (button) {
-                                        const rect = button.getBoundingClientRect();
-                                        const viewportHeight = window.innerHeight;
-                                        const menuHeight = 180;
-                                        const spaceBelow = viewportHeight - rect.bottom;
-                                        const spaceAbove = rect.top;
-                                        
-                                        if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-                                          el.style.bottom = "100%";
-                                          el.style.top = "auto";
-                                          el.style.marginBottom = "4px";
-                                          el.style.marginTop = "0";
-                                        } else {
-                                          el.style.top = "100%";
-                                          el.style.bottom = "auto";
-                                          el.style.marginTop = "4px";
-                                          el.style.marginBottom = "0";
-                                        }
-                                      }
-                                    }
-                                  }}
                                   >
                                     <button
                                       onClick={() => { loadTicketDetails(t.id); setOpenActionsMenuFor(null); }}
@@ -4419,7 +4407,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                     >
                                       Marquer résolu
                                     </button>
-                                  </div>
+                                  </div>,
+                                  document.body
                                 )}
                               </div>
                           </div>
@@ -4647,9 +4636,17 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                             {/* Menu 3 points */}
                             <div style={{ position: "relative" }}>
                               <button
+                                data-menu-trigger
                                 onClick={(e) => { 
                                   e.stopPropagation(); 
-                                  setOpenActionsMenuFor(openActionsMenuFor === t.id ? null : t.id);
+                                  if (openActionsMenuFor === t.id) {
+                                    setOpenActionsMenuFor(null);
+                                    setMenuPosition(null);
+                                  } else {
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                                    setOpenActionsMenuFor(t.id);
+                                  }
                                 }}
                                 disabled={loading}
                                 title="Actions"
@@ -4679,46 +4676,22 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   e.currentTarget.style.backgroundColor = "transparent";
                                 }}
                               />
-                              {openActionsMenuFor === t.id && (
+                              {openActionsMenuFor === t.id && menuPosition && createPortal(
                                 <div
+                                  data-menu-dropdown
                                   style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    right: 0,
-                                    marginTop: "4px",
+                                    position: "fixed",
+                                    top: menuPosition.top,
+                                    left: menuPosition.left,
                                     background: "white",
                                     border: "1px solid #e5e7eb",
                                     borderRadius: 8,
                                     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
                                     minWidth: 160,
-                                    zIndex: 1000,
+                                    zIndex: 10000,
                                     overflow: "visible"
                                   }}
                                   onClick={(e) => e.stopPropagation()}
-                                  ref={(el) => {
-                                    if (el) {
-                                      const button = el.previousElementSibling as HTMLElement;
-                                      if (button) {
-                                        const rect = button.getBoundingClientRect();
-                                        const viewportHeight = window.innerHeight;
-                                        const menuHeight = 90;
-                                        const spaceBelow = viewportHeight - rect.bottom;
-                                        const spaceAbove = rect.top;
-                                        
-                                        if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-                                          el.style.bottom = "100%";
-                                          el.style.top = "auto";
-                                          el.style.marginBottom = "4px";
-                                          el.style.marginTop = "0";
-                                        } else {
-                                          el.style.top = "100%";
-                                          el.style.bottom = "auto";
-                                          el.style.marginTop = "4px";
-                                          el.style.marginBottom = "0";
-                                        }
-                                      }
-                                    }
-                                  }}
                                 >
                                   <button
                                     onClick={() => { loadTicketDetails(t.id); setOpenActionsMenuFor(null); }}
@@ -4769,7 +4742,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   >
                                     Ajouter commentaire
                                   </button>
-                                </div>
+                                </div>,
+                                document.body
                               )}
                             </div>
                           </div>
@@ -4992,9 +4966,17 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                             {/* Menu 3 points */}
                             <div style={{ position: "relative" }}>
                               <button
+                                data-menu-trigger
                                 onClick={(e) => { 
                                   e.stopPropagation(); 
-                                  setOpenActionsMenuFor(openActionsMenuFor === t.id ? null : t.id);
+                                  if (openActionsMenuFor === t.id) {
+                                    setOpenActionsMenuFor(null);
+                                    setMenuPosition(null);
+                                  } else {
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 220) });
+                                    setOpenActionsMenuFor(t.id);
+                                  }
                                 }}
                                 disabled={loading}
                                 title="Actions"
@@ -5024,46 +5006,22 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   e.currentTarget.style.backgroundColor = "transparent";
                                 }}
                               />
-                              {openActionsMenuFor === t.id && (
+                              {openActionsMenuFor === t.id && menuPosition && createPortal(
                                 <div
+                                  data-menu-dropdown
                                   style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    right: 0,
-                                    marginTop: "4px",
+                                    position: "fixed",
+                                    top: menuPosition.top,
+                                    left: menuPosition.left,
                                     background: "white",
                                     border: "1px solid #e5e7eb",
                                     borderRadius: 8,
                                     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
                                     minWidth: 160,
-                                    zIndex: 1000,
+                                    zIndex: 10000,
                                     overflow: "visible"
                                   }}
                                   onClick={(e) => e.stopPropagation()}
-                                  ref={(el) => {
-                                    if (el) {
-                                      const button = el.previousElementSibling as HTMLElement;
-                                      if (button) {
-                                        const rect = button.getBoundingClientRect();
-                                        const viewportHeight = window.innerHeight;
-                                        const menuHeight = 120;
-                                        const spaceBelow = viewportHeight - rect.bottom;
-                                        const spaceAbove = rect.top;
-                                        
-                                        if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-                                          el.style.bottom = "100%";
-                                          el.style.top = "auto";
-                                          el.style.marginBottom = "4px";
-                                          el.style.marginTop = "0";
-                                        } else {
-                                          el.style.top = "100%";
-                                          el.style.bottom = "auto";
-                                          el.style.marginTop = "4px";
-                                          el.style.marginBottom = "0";
-                                        }
-                                      }
-                                    }
-                                  }}
                                 >
                                   <button
                                     onClick={() => { loadTicketDetails(t.id); setOpenActionsMenuFor(null); }}
@@ -5114,7 +5072,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   >
                                     Reprendre
                                   </button>
-                                </div>
+                                </div>,
+                                document.body
                               )}
                             </div>
                           </div>
