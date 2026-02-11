@@ -2252,9 +2252,39 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
                 <strong>Actions :</strong>
                 <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") ? (
-                    <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>
-                  ) : (
+                  {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") && (
+                  <button
+                    onClick={() => {
+                      setSelectedTicket(ticketDetails.id);
+                    }}
+                    disabled={loading}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#e5e7eb",
+                      color: "black",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#d1d5db";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#e5e7eb";
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Ajouter un commentaire
+                  </button>
+                  )}
+                  {!(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") && (
                   <>
                   {/* Bouton Prendre en charge - visible seulement si le ticket est assigné mais pas encore en cours */}
                   {ticketDetails.status === "assigne_technicien" && (
@@ -2294,9 +2324,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                     </button>
                   )}
 
-                  {/* Bouton Ajouter un commentaire */}
-                  {(ticketDetails.status === "en_cours" || ticketDetails.status === "assigne_technicien") && (
-                    <button
+                  {/* Bouton Ajouter un commentaire - toujours visible pour le technicien */}
+                  <button
                       onClick={() => {
                         setSelectedTicket(ticketDetails.id);
                       }}
@@ -2326,7 +2355,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                       </svg>
                       Ajouter un commentaire
                     </button>
-                  )}
 
                   {/* Bouton Demander des informations */}
                   {(ticketDetails.status === "en_cours" || ticketDetails.status === "assigne_technicien") && (
