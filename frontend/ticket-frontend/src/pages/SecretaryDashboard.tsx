@@ -1026,8 +1026,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       return "Résolu par technicien";
     }
     
-    // Cas spécifique: validation et clôture par l'utilisateur (resolu → cloture avec "Validation utilisateur: Validé")
-    if ((oldStatus.includes("resolu") || oldStatus.includes("résolu")) &&
+    // Cas spécifique: validation et clôture par l'utilisateur (resolu ou retraite → cloture avec "Validation utilisateur: Validé")
+    if ((oldStatus.includes("resolu") || oldStatus.includes("résolu") || oldStatus.includes("retraite") || oldStatus.includes("retraité")) &&
         (newStatus.includes("cloture") || newStatus.includes("clôture")) &&
         (reason.includes("validation utilisateur: validé") || reason.includes("validation utilisateur: validé"))) {
       // Afficher "Validé par [nom de l'utilisateur]" si disponible
