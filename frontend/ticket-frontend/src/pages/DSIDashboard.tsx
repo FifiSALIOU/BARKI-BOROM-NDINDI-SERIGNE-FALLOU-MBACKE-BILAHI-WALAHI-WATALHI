@@ -2285,9 +2285,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     void loadCategoriesData();
   }, [activeSection, userRole, token]);
 
-  // Charger types et catégories quand le modal de création de ticket s'ouvre (DSI)
+  // Charger types et catégories quand le modal de création de ticket s'ouvre (DSI et Admin)
   useEffect(() => {
-    if (showCreateTicketModal && userRole === "DSI" && token) {
+    if (showCreateTicketModal && (userRole === "DSI" || userRole === "Admin") && token) {
       (async () => {
         try {
           const [typesRes, categoriesRes] = await Promise.all([
@@ -2448,7 +2448,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       setNewTicketType("materiel");
       setNewTicketCategory("");
       setShowCreateTicketModal(false);
-      navigate("/dashboard/dsi");
+      navigate(getRoutePrefix());
       void loadTickets();
       void loadNotifications();
       void loadUnreadCount();
