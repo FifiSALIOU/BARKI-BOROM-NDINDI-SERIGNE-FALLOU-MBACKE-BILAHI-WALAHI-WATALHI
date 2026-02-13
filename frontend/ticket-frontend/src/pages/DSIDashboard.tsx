@@ -813,6 +813,13 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const activeSection = getActiveSection();
   const showTicketsPlaceholder = activeSection === "tickets" && !ticketsSectionReady;
 
+  // Fermer la vue "détails du ticket" quand on change de section (ex: clic sur Actifs) pour afficher le contenu de la section
+  useEffect(() => {
+    if (activeSection !== "dashboard" && activeSection !== "tickets") {
+      setShowTicketDetailsPage(false);
+    }
+  }, [activeSection]);
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [agencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
