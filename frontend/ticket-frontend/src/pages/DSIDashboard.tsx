@@ -20561,7 +20561,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           )}
 
           {activeSection === "departements" && (
-            <div style={{ padding: "24px" }}>
+            <div style={{ padding: "24px 24px 24px 0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                 <div />
                 <button
