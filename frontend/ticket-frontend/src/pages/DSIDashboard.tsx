@@ -20206,7 +20206,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               >
                 {[
                   { id: "etat-systeme", label: "État système", icon: Activity },
-                  { id: "base-de-donnees", label: "Base de données", icon: HardDrive },
+                  { id: "base-de-donnees", label: "Base de données", icon: Database },
                   { id: "taches", label: "Tâches", icon: Wrench },
                   { id: "journaux", label: "Journaux", icon: FileText },
                 ].map((tab, index, allTabs) => {
