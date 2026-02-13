@@ -11046,7 +11046,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             <>
               {!ticketsSectionReady ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "280px", width: "100%" }}>
-                  <span style={{ fontSize: "16px", color: "#6b7280" }}>Tickets — chargement…</span>
+                  <span style={{ fontSize: "16px", color: "#6b7280" }}>En chargement.......</span>
                 </div>
               ) : (
             <>
