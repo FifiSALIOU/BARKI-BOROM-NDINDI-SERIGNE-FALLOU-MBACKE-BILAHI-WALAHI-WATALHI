@@ -7249,6 +7249,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Équipe"
                 : activeSection === "departements"
                 ? "Agences"
+                : activeSection === "maintenance"
+                ? "Maintenance"
                 : activeSection === "reports"
                 ? "Statistiques générales"
                 : "Tableau de bord"}
@@ -7280,6 +7282,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Gestion des membres de l'équipe DSI et des techniciens"
                 : activeSection === "departements"
                 ? "Gestion des agences de l'organisation"
+                : activeSection === "maintenance"
+                ? "Surveillance de l'état du système et de la base de données"
                 : activeSection === "reports"
                 ? "Vue d'ensemble des tickets et de l'activité du support"
                 : "Vue d'ensemble de votre activité"}
