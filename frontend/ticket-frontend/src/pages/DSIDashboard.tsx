@@ -17592,7 +17592,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
            )}
 
            {activeSection === "priorites" && (
-             <div style={{ padding: "24px" }}>
+             <div style={{ padding: "24px 24px 24px 0" }}>
                <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end" }}>
                  <button
                    type="button"
