@@ -722,6 +722,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [delegateTicketId, setDelegateTicketId] = useState<string | null>(null);
   const [selectedAdjoint, setSelectedAdjoint] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [ticketsSectionReady, setTicketsSectionReady] = useState(false);
   const [metrics, setMetrics] = useState<{
     openTickets: number;
     avgResolutionTime: string | null;
@@ -810,7 +811,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     return "dashboard";
   };
   const activeSection = getActiveSection();
-  
+  const showTicketsPlaceholder = activeSection === "tickets" && !ticketsSectionReady;
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [agencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -1273,6 +1275,19 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     }
   }, [searchParams, allTickets]);
   
+  // Afficher la section Tickets immédiatement : d’abord un placeholder, puis le contenu au frame suivant
+  useEffect(() => {
+    if (activeSection === "tickets") {
+      const id = requestAnimationFrame(() => setTicketsSectionReady(true));
+      return () => {
+        cancelAnimationFrame(id);
+        setTicketsSectionReady(false);
+      };
+    } else {
+      setTicketsSectionReady(false);
+    }
+  }, [activeSection]);
+
   // Définir automatiquement "statistiques" comme rapport sélectionné quand on arrive sur la page reports
   useEffect(() => {
     const path = location.pathname;
@@ -11023,6 +11038,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
 
           {activeSection === "tickets" && !showTicketDetailsPage && (
             <>
+              {showTicketsPlaceholder ? (
+                <div style={{ padding: "24px", fontSize: "16px", color: "#6b7280" }}>Tickets — chargement…</div>
+              ) : (
+            <>
               {/* Barre de recherche */}
               <div style={{ 
                 display: "flex", 
@@ -11969,6 +11988,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   })
                 )}
               </div>
+            </>
+              )}
             </>
           )}
 
