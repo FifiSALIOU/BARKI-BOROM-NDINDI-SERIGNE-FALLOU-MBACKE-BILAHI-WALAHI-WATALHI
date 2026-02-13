@@ -11039,7 +11039,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           {activeSection === "tickets" && !showTicketDetailsPage && (
             <>
               {showTicketsPlaceholder ? (
-                <div style={{ padding: "24px", fontSize: "16px", color: "#6b7280" }}>Tickets — chargement…</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "280px", width: "100%" }}>
+                  <span style={{ fontSize: "16px", color: "#6b7280" }}>Tickets — chargement…</span>
+                </div>
               ) : (
             <>
               {/* Barre de recherche */}
