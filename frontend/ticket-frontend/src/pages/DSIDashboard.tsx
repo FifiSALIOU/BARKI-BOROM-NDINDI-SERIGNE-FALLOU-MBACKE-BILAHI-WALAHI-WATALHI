@@ -7058,19 +7058,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   Sécurité
                 </div>
                 <div
-                  onClick={() => navigate(`${getRoutePrefix()}/parametres/types-de-tickets`)}
-                  style={{
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    color: "white",
-                    borderRadius: "4px",
-                    background: activeSection === "types-tickets" ? "hsl(25, 95%, 53%)" : "transparent",
-                    fontSize: "14px"
-                  }}
-                >
-                  Types de Tickets
-                </div>
-                <div
                   onClick={() => navigate(`${getRoutePrefix()}/parametres/priorites`)}
                   style={{
                     padding: "8px 12px",
