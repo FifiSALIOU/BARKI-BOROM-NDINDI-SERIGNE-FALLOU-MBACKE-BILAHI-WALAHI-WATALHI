@@ -911,6 +911,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [newTicketType, setNewTicketType] = useState<string>("materiel");
   const [newTicketCategory, setNewTicketCategory] = useState<string>("");
   const [createTicketError, setCreateTicketError] = useState<string | null>(null);
+  const [validationTicket, setValidationTicket] = useState<string | null>(null);
+  const [validationRejectionReason, setValidationRejectionReason] = useState<string>("");
+  const [showValidationRejectionForm, setShowValidationRejectionForm] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [usersPerPage] = useState<number>(10);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -4034,6 +4037,48 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     } catch (err) {
       console.error("Erreur réouverture:", err);
       alert("Erreur lors de la réouverture");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleValidateTicket(ticketId: string, validated: boolean) {
+    if (!validated && (!validationRejectionReason || !validationRejectionReason.trim())) {
+      alert("Veuillez indiquer un motif de rejet");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const requestBody: { validated: boolean; rejection_reason?: string } = { validated };
+      if (!validated && validationRejectionReason) {
+        requestBody.rejection_reason = validationRejectionReason.trim();
+      }
+
+      const res = await fetch(`http://localhost:8000/tickets/${ticketId}/validate`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (res.ok) {
+        alert(validated ? "Ticket validé et clôturé avec succès !" : "Ticket relancé. Le technicien a été notifié avec le motif.");
+        const ticketsData = await loadTickets(ticketSearchQuery);
+        setAllTickets(ticketsData);
+        setValidationTicket(null);
+        setValidationRejectionReason("");
+        setShowValidationRejectionForm(false);
+        if (ticketDetails?.id === ticketId) await loadTicketDetails(ticketId);
+      } else {
+        const error = await res.json();
+        alert(`Erreur: ${error.detail || "Impossible de valider le ticket"}`);
+      }
+    } catch (err) {
+      console.error("Erreur validation:", err);
+      alert("Erreur lors de la validation");
     } finally {
       setLoading(false);
     }
@@ -7691,32 +7736,95 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 <div style={{ marginTop: "12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite" || ticketDetails.status === "cloture") ? (
                     (userRole === "DSI" || userRole === "Admin") ? (
-                      <button
-                        onClick={() => commentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                        disabled={loading}
-                        style={{
-                          padding: "10px 20px",
-                          backgroundColor: "#e5e7eb",
-                          color: "black",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px"
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!loading) e.currentTarget.style.backgroundColor = "#d1d5db";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#e5e7eb";
-                        }}
-                      >
-                        <MessageCircle size={16} color="#374151" strokeWidth={2} />
-                        Ajouter un commentaire
-                      </button>
+                      <>
+                        {/* Valider / Relancer : uniquement si DSI ou Admin EST le créateur du ticket (résolu ou retraité) */}
+                        {(ticketDetails.status === "resolu" || ticketDetails.status === "retraite") && userInfo?.id != null && String(ticketDetails.creator_id) === String(userInfo.id) && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setValidationTicket(ticketDetails.id);
+                                setShowValidationRejectionForm(false);
+                                setValidationRejectionReason("");
+                              }}
+                              disabled={loading}
+                              style={{
+                                padding: "10px 20px",
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "500"
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!loading) e.currentTarget.style.backgroundColor = "#218838";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "#28a745";
+                              }}
+                            >
+                              Valider
+                            </button>
+                            <button
+                              onClick={() => {
+                                setValidationTicket(ticketDetails.id);
+                                setShowValidationRejectionForm(true);
+                                setValidationRejectionReason("");
+                              }}
+                              disabled={loading}
+                              style={{
+                                padding: "10px 20px",
+                                backgroundColor: "#e5e7eb",
+                                color: "#dc3545",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px"
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!loading) e.currentTarget.style.backgroundColor = "#d1d5db";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "#e5e7eb";
+                              }}
+                            >
+                              <RefreshCcw size={16} color="#dc3545" />
+                              Relancer
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => commentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                          disabled={loading}
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#e5e7eb",
+                            color: "black",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!loading) e.currentTarget.style.backgroundColor = "#d1d5db";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#e5e7eb";
+                          }}
+                        >
+                          <MessageCircle size={16} color="#374151" strokeWidth={2} />
+                          Ajouter un commentaire
+                        </button>
+                      </>
                     ) : (
                       <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>
                     )
@@ -22181,6 +22289,137 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 {loading ? "Délégation..." : "Confirmer la délégation"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de validation/relance (DSI/Admin créateur du ticket) */}
+      {validationTicket && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: "white",
+            padding: "24px",
+            borderRadius: "8px",
+            maxWidth: "500px",
+            width: "90%"
+          }}>
+            {!showValidationRejectionForm ? (
+              <>
+                <h3 style={{ marginBottom: "16px" }}>Valider la résolution</h3>
+                <p style={{ marginBottom: "16px", color: "#666" }}>
+                  Le problème a-t-il été résolu de manière satisfaisante ?
+                </p>
+                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                  <button
+                    onClick={() => handleValidateTicket(validationTicket, true)}
+                    disabled={loading}
+                    style={{ flex: 1, padding: "10px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Oui, valider
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowValidationRejectionForm(true);
+                      setValidationRejectionReason("");
+                    }}
+                    disabled={loading}
+                    style={{ flex: 1, padding: "10px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Non, relancer
+                  </button>
+                  <button
+                    onClick={() => {
+                      setValidationTicket(null);
+                      setShowValidationRejectionForm(false);
+                      setValidationRejectionReason("");
+                    }}
+                    style={{ flex: 1, padding: "10px", background: "#f5f5f5", border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", color: "#333" }}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ marginBottom: "16px", color: "#dc3545" }}>Relancer la résolution</h3>
+                <p style={{ marginBottom: "16px", color: "#666" }}>
+                  Veuillez indiquer le motif de relance. Cette information sera transmise au technicien pour l'aider à mieux résoudre votre problème.
+                </p>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+                    Motif de relance <span style={{ color: "#dc3545" }}>*</span>
+                  </label>
+                  <textarea
+                    value={validationRejectionReason}
+                    onChange={(e) => setValidationRejectionReason(e.target.value)}
+                    placeholder=""
+                    rows={4}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                      fontSize: "14px",
+                      resize: "vertical",
+                      fontFamily: "inherit"
+                    }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                  <button
+                    onClick={() => handleValidateTicket(validationTicket, false)}
+                    disabled={loading || !validationRejectionReason.trim()}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      backgroundColor: "#dc3545",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: validationRejectionReason.trim() ? "pointer" : "not-allowed",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Confirmer la relance
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowValidationRejectionForm(false);
+                      setValidationRejectionReason("");
+                    }}
+                    disabled={loading}
+                    style={{ flex: 1, padding: "10px", background: "#f5f5f5", border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", color: "#000" }}
+                  >
+                    Retour
+                  </button>
+                  <button
+                    onClick={() => {
+                      setValidationTicket(null);
+                      setShowValidationRejectionForm(false);
+                      setValidationRejectionReason("");
+                    }}
+                    style={{ flex: 1, padding: "10px", background: "#f5f5f5", border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", color: "#000" }}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
