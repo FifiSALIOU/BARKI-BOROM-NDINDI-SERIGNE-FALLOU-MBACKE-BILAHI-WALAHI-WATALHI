@@ -7255,6 +7255,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Audit et Logs"
                 : activeSection === "reports"
                 ? "Statistiques générales"
+                : activeSection === "apparence"
+                ? "Apparence"
                 : "Tableau de bord"}
             </div>
             <div style={{ 
@@ -7290,6 +7292,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Consultation et analyse des journaux d'activité"
                 : activeSection === "reports"
                 ? "Vue d'ensemble des tickets et de l'activité du support"
+                : activeSection === "apparence"
+                ? "Personnalisez le thème et l'aspect de l'interface"
                 : "Vue d'ensemble de votre activité"}
             </div>
           </div>
