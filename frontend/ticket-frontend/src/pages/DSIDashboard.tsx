@@ -20906,7 +20906,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                               color: "#6b7280",
                             }}
                           >
-                            Statistiques des tables principales
+                            Statistiques des tables principales de notre instance PostgreSQL.
                           </p>
                         </div>
                       </div>
