@@ -20358,6 +20358,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                   fontSize: "12px",
                                   color: "#6b7280",
                                   whiteSpace: "nowrap",
+                                  marginTop: "4px",
                                 }}
                               >
                                 Disponibilité:{" "}
