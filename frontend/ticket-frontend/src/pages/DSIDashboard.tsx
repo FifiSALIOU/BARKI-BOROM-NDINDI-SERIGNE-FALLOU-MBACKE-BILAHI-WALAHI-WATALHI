@@ -17646,7 +17646,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                        </tr>
                      </thead>
                      <tbody>
-                       {prioritiesFromDb.filter((p) => p.is_active).map((p) => {
+                       {prioritiesFromDb.map((p) => {
                          const bgHex = p.background_hex || p.color_hex || "#f3f4f6";
                          const textHex = p.color_hex || "#374151";
                          return (
@@ -17701,7 +17701,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                    height: "24px",
                                    borderRadius: "12px",
                                    border: "none",
-                                   background: p.is_active ? "hsl(25, 95%, 53%)" : "#d1d5db",
+                                   background: p.is_active ? "hsl(142, 71%, 45%)" : "#d1d5db",
                                    cursor: "pointer",
                                    position: "relative",
                                    transition: "background 0.2s"
