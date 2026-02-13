@@ -84,6 +84,26 @@ def create_priority(
     return priority
 
 
+@router.delete("/priorities/{priority_id}", status_code=204)
+def delete_priority(
+    priority_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Supprime définitivement une priorité de la base. Les tickets qui l'utilisaient passent à priority_id=NULL et priority=NULL."""
+    priority = db.query(models.Priority).filter(models.Priority.id == priority_id).first()
+    if not priority:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Priorité introuvable")
+    # Mettre à NULL les tickets qui référencent cette priorité (évite violation FK)
+    db.query(models.Ticket).filter(models.Ticket.priority_id == priority_id).update(
+        {models.Ticket.priority_id: None, models.Ticket.priority: None},
+        synchronize_session="fetch",
+    )
+    db.delete(priority)
+    db.commit()
+    return None
+
+
 @router.get("/types", response_model=List[schemas.TicketTypeConfig])
 def get_ticket_types(
     db: Session = Depends(get_db),

@@ -17647,7 +17647,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                        </tr>
                      </thead>
                      <tbody>
-                       {prioritiesFromDb.map((p) => {
+                       {prioritiesFromDb.filter((p) => p.is_active).map((p) => {
                          const bgHex = p.background_hex || p.color_hex || "#f3f4f6";
                          const textHex = p.color_hex || "#374151";
                          const slaHours = { 1: 24, 2: 48, 3: 72, 4: 96 }[p.display_order] ?? "—";
@@ -17751,13 +17751,21 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                  <button
                                    type="button"
                                    onClick={async () => {
-                                     if (!window.confirm("Désactiver cette priorité ?")) return;
-                                     const res = await fetch(`http://localhost:8000/ticket-config/priorities/${p.id}`, {
-                                       method: "PATCH",
-                                       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                                       body: JSON.stringify({ is_active: false }),
-                                     });
-                                     if (res.ok) loadPrioritiesFromDb();
+                                     if (!window.confirm("Supprimer définitivement cette priorité de la base de données ?")) return;
+                                     try {
+                                       const res = await fetch(`http://localhost:8000/ticket-config/priorities/${p.id}`, {
+                                         method: "DELETE",
+                                         headers: { Authorization: `Bearer ${token}` },
+                                       });
+                                       if (res.ok || res.status === 204) {
+                                         loadPrioritiesFromDb();
+                                       } else {
+                                         const err = await res.json().catch(() => ({}));
+                                         alert(err.detail || "Erreur lors de la suppression.");
+                                       }
+                                     } catch (e) {
+                                       alert("Erreur réseau lors de la suppression.");
+                                     }
                                    }}
                                    style={{
                                      padding: "6px 12px",
