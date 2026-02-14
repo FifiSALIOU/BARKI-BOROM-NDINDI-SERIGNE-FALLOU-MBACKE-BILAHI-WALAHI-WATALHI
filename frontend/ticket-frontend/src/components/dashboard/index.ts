@@ -36,3 +36,4 @@ export { GroupesSection } from "./GroupesSection.tsx";
 export { UsersSection } from "./UsersSection.tsx";
 export { RolesSection } from "./RolesSection.tsx";
 export { EmailSection } from "./EmailSection.tsx";
+export { ReportsSection } from "./ReportsSection.tsx";
