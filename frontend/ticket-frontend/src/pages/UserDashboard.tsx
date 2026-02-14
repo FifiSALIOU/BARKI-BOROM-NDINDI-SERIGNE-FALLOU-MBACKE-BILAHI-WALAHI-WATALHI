@@ -1152,6 +1152,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           if (res.ok) {
             const data = await res.json();
             setUserInfo({ 
+              id: data.id,
               full_name: data.full_name,
               role: data.role?.name || "Utilisateur"
             });
@@ -1388,7 +1389,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const ticketsListRef = useRef<HTMLDivElement>(null);
-  const [userInfo, setUserInfo] = useState<{ full_name: string; role?: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{ id?: number; full_name: string; role?: string } | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<string>("");
@@ -1397,6 +1398,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [dashboardCategoryFilter, setDashboardCategoryFilter] = useState<string>("");
   const [dashboardPriorityFilter, setDashboardPriorityFilter] = useState<string>("");
   const [selectedFilterValue, setSelectedFilterValue] = useState<string>("");
+
+  const myComments = ticketComments.filter(c => userInfo?.id != null && String(c.user_id) === String(userInfo.id));
  
   // Fonction pour obtenir les valeurs uniques selon la caractéristique, en respectant les filtres déjà appliqués
   function getUniqueValues(characteristic: string, currentStatus?: string | null, currentFilterValue?: string, currentChar?: string): string[] {
@@ -2180,7 +2183,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 )}
               </div>
 
-              {/* Section Commentaires (Utilisateur) - sans case interne, commentaires visibles partout */}
+              {/* Section Commentaires (Utilisateur) - uniquement les commentaires de l'utilisateur connecté */}
               <div style={{
                 marginTop: "24px",
                 padding: "16px",
@@ -2191,16 +2194,16 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
                   <MessageCircle size={20} color="hsl(25, 95%, 53%)" strokeWidth={2} />
                   <strong style={{ fontSize: "15px", color: "#111827" }}>
-                    Commentaires ({ticketComments.length})
+                    Commentaires ({myComments.length})
                   </strong>
                 </div>
-                {ticketComments.length === 0 ? (
+                {myComments.length === 0 ? (
                   <p style={{ color: "#6b7280", fontStyle: "italic", marginBottom: "16px", fontSize: "14px" }}>
                     Aucun commentaire pour ce ticket
                   </p>
                 ) : (
                   <div style={{ marginBottom: "16px" }}>
-                    {ticketComments.map((c) => (
+                    {myComments.map((c) => (
                       <div
                         key={c.id}
                         style={{
@@ -4041,7 +4044,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     )}
                   </div>
 
-                  {/* Section Commentaires (Utilisateur) - sans case interne */}
+                  {/* Section Commentaires (Utilisateur) - uniquement les commentaires de l'utilisateur connecté */}
                   <div style={{
                     marginTop: "24px",
                     padding: "16px",
@@ -4052,16 +4055,16 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
                       <MessageCircle size={20} color="hsl(25, 95%, 53%)" strokeWidth={2} />
                       <strong style={{ fontSize: "15px", color: "#111827" }}>
-                        Commentaires ({ticketComments.length})
+                        Commentaires ({myComments.length})
                       </strong>
                     </div>
-                    {ticketComments.length === 0 ? (
+                    {myComments.length === 0 ? (
                       <p style={{ color: "#6b7280", fontStyle: "italic", marginBottom: "16px", fontSize: "14px" }}>
                         Aucun commentaire pour ce ticket
                       </p>
                     ) : (
                       <div style={{ marginBottom: "16px" }}>
-                        {ticketComments.map((c) => (
+                        {myComments.map((c) => (
                           <div
                             key={c.id}
                             style={{
