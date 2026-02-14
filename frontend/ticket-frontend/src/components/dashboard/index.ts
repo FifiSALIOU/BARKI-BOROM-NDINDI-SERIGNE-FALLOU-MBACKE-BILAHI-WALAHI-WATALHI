@@ -28,3 +28,5 @@ export { AuditLogsSection } from "./AuditLogsSection.tsx";
 export { MaintenanceSection } from "./MaintenanceSection.tsx";
 export { ActifsSection } from "./ActifsSection.tsx";
 export { TicketsSection } from "./TicketsSection.tsx";
+export { TypesSection } from "./TypesSection.tsx";
+export { CategoriesSection } from "./CategoriesSection.tsx";
