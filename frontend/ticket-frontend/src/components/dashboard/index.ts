@@ -30,3 +30,8 @@ export { ActifsSection } from "./ActifsSection.tsx";
 export { TicketsSection } from "./TicketsSection.tsx";
 export { TypesSection } from "./TypesSection.tsx";
 export { CategoriesSection } from "./CategoriesSection.tsx";
+export { PrioritesSection } from "./PrioritesSection.tsx";
+export { TechniciensSection } from "./TechniciensSection.tsx";
+export { GroupesSection } from "./GroupesSection.tsx";
+export { UsersSection } from "./UsersSection.tsx";
+export { RolesSection } from "./RolesSection.tsx";
