@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Clock, CheckCircle, LayoutDashboard, PlusCircle, Ticket, ChevronLeft, ChevronRight, ChevronDown, Bell, Wrench, Monitor, Search, Send, Info, CheckCircle2, AlertTriangle, XCircle, Check, Pencil, Trash2, RefreshCcw, FileText, UserCheck, Users, MessageCircle } from "lucide-react";
+import { Clock, CheckCircle, LayoutDashboard, PlusCircle, Ticket as TicketIcon, ChevronLeft, ChevronRight, ChevronDown, Bell, Wrench, Monitor, Search, Send, CheckCircle2, Pencil, Trash2, RefreshCcw, FileText, UserCheck, Users, MessageCircle } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 
 interface UserDashboardProps {
@@ -167,14 +167,14 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   // Fonction helper pour formater le message de notification en remplaçant "#X" par "TKT-XXX"
   const formatNotificationMessage = (message: string): string => {
     // Remplacer les patterns "#X" ou "ticket #X" par "TKT-XXX"
-    return message.replace(/#(\d+)/g, (match, number) => {
+    return message.replace(/#(\d+)/g, (_match, number) => {
       const ticketNumber = parseInt(number, 10);
       return `TKT-${ticketNumber.toString().padStart(3, '0')}`;
     });
   };
 
-  // Fonction helper pour formater la date relative
-  const formatRelativeTime = (dateString: string): string => {
+  // Fonction helper pour formater la date relative (conservée pour usage futur)
+  const _formatRelativeTime = (dateString: string): string => {
     const now = new Date();
     const date = new Date(dateString);
     const diffInMs = now.getTime() - date.getTime();
@@ -382,6 +382,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       const oldStatus = (entry.old_status || "").toLowerCase();
       const newStatus = (entry.new_status || "").toLowerCase();
       const reason = (entry.reason || "").toLowerCase();
+      void reason;
       
       // Détecter rejet de résolution : resolu ou retraite → rejete
       if ((oldStatus.includes("resolu") || oldStatus.includes("résolu") || oldStatus.includes("retraite") || oldStatus.includes("retraité")) && 
@@ -482,8 +483,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     return entry.new_status;
   };
 
-  // Fonction helper pour déterminer le type de notification
-  const getNotificationType = (message: string): "info" | "success" | "warning" | "error" => {
+  // Fonction helper pour déterminer le type de notification (conservée pour usage futur)
+  const _getNotificationType = (message: string): "info" | "success" | "warning" | "error" => {
     const lowerMessage = message.toLowerCase();
     if (lowerMessage.includes("résolu") || lowerMessage.includes("resolu") || lowerMessage.includes("clôturé") || lowerMessage.includes("cloture")) {
       return "success";
@@ -495,8 +496,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     return "info";
   };
 
-  // Fonction helper pour extraire le titre de la notification
-  const getNotificationTitle = (message: string): string => {
+  // Fonction helper pour extraire le titre de la notification (conservée pour usage futur)
+  const _getNotificationTitle = (message: string): string => {
     const lowerMessage = message.toLowerCase();
     if (lowerMessage.includes("créé") || lowerMessage.includes("cree")) {
       return "Nouveau ticket créé";
@@ -539,7 +540,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("moyenne");
+  const [_priority, setPriority] = useState("moyenne");
   const [type, setType] = useState("materiel");
   const [category, setCategory] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -576,7 +577,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const actionsMenuContainerRef = useRef<HTMLDivElement | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeConfig[]>([]);
   const [ticketCategories, setTicketCategories] = useState<TicketCategoryConfig[]>([]);
-  const [notificationSearch, setNotificationSearch] = useState<string>("");
+  const [_notificationSearch, _setNotificationSearch] = useState<string>("");
   
   // Mettre à jour le token si le prop change
   useEffect(() => {
@@ -931,7 +932,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     }
   }
 
-  async function clearAllNotifications() {
+  async function _clearAllNotifications() {
     try {
       const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
       if (actualToken && actualToken.trim() !== "" && unreadIds.length > 0) {
@@ -945,9 +946,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         );
       }
     } catch {}
-    setNotifications([]);
-    setUnreadCount(0);
   }
+  void [_formatRelativeTime, _getNotificationType, _getNotificationTitle, _clearAllNotifications];
 
   function handleLogout() {
     try {
@@ -1456,7 +1456,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           values.add(ticket.status);
           break;
         case "priorite":
-          values.add(ticket.priority);
+          values.add(ticket.priority ?? "");
           break;
         case "titre":
           values.add(ticket.title);
@@ -1766,7 +1766,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <Ticket size={20} color={activeSection === "tickets" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+            <TicketIcon size={20} color={activeSection === "tickets" ? "white" : "rgba(180, 180, 180, 0.7)"} />
           </div>
           <div style={{ 
             fontSize: "15px",
@@ -2769,7 +2769,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           )}
         
         {/* Interface de filtrage et tableau - Style GLPI */}
-        {activeSection === "tickets-by-status" && selectedStatus && (
+        {(activeSection as string) === "tickets-by-status" && selectedStatus && (
             <div style={{ 
               background: "white", 
               borderRadius: "8px", 
@@ -3275,7 +3275,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   gap: "8px",
                   marginBottom: "16px"
                 }}>
-                  <Ticket size={20} color="#4b5563" />
+                  <TicketIcon size={20} color="#4b5563" />
                   <span style={{ 
                     fontSize: "14px", 
                     fontWeight: "500", 

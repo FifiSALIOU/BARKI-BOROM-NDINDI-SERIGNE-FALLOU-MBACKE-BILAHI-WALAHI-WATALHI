@@ -39,16 +39,16 @@ interface Ticket {
     email: string;
     agency: string | null;
   };
-  user_agency: string | null;  // Agence de l'utilisateur créateur
+  user_agency: string | null;
   priority: string;
   status: string;
-  type: string;  // "materiel" ou "applicatif"
+  type: string;
   category?: string | null;
   technician_id: string | null;
   technician?: {
     full_name: string;
   } | null;
-  secretary_id?: string | null;  // ID de l'adjoint DSI auquel le ticket est délégué
+  secretary_id?: string | null;
   created_at?: string;
   resolved_at?: string | null;
   closed_at?: string | null;
@@ -101,7 +101,7 @@ interface TicketComment {
 }
 
 interface UserRead {
-  id?: string;  // ID de l'utilisateur connecté
+  id?: string;
   full_name: string;
   email: string;
   agency?: string | null;

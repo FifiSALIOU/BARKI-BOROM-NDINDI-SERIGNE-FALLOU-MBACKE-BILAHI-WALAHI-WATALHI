@@ -35,19 +35,24 @@ interface Ticket {
   description: string;
   priority: string;
   status: string;
-  assigned_at: string | null;
+  assigned_at?: string | null;
   resolved_at?: string | null;
   closed_at?: string | null;
   created_at?: string | null;
   type: string;
   category?: string | null;
+  creator_id?: string;
   creator?: {
     full_name: string;
-    agency: string | null;
+    agency?: string | null;
   };
+  user_agency?: string | null;
+  technician_id?: string | null;
   technician?: {
     full_name: string;
   } | null;
+  secretary_id?: string | null;
+  feedback_score?: number | null;
   attachments?: any;
 }
 
@@ -859,7 +864,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     }
   }
   
-  async function clearAllNotifications() {
+  async function _clearAllNotifications() {
     const confirmed = window.confirm("Confirmer l'effacement de toutes les notifications ?");
     if (!confirmed) return;
     try {
@@ -878,6 +883,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     setNotifications([]);
     setUnreadCount(0);
   }
+  void _clearAllNotifications;
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -1520,7 +1526,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     return Math.round((totalHours / resolvedTicketsWithTime.length) * 10) / 10; // Arrondir à 1 décimale
   };
 
-  const averageResolutionTime = calculateAverageResolutionTime();
+  const _averageResolutionTime = calculateAverageResolutionTime();
+  void _averageResolutionTime;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', system-ui, sans-serif", background: "#f5f5f5", overflowX: "visible" }}>
