@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, startTransition } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import {
   Users,
@@ -7486,10 +7486,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <button
                 onClick={() => {
                   setShowTicketDetailsPage(false);
-                  setTicketDetails(null);
-                  setTicketHistory([]);
-                  setTicketComments([]);
-                  setDetailCommentText("");
+                  startTransition(() => {
+                    setTicketDetails(null);
+                    setTicketHistory([]);
+                    setTicketComments([]);
+                    setDetailCommentText("");
+                  });
                 }}
                 style={{
                   display: "flex",
@@ -11042,7 +11044,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
         )}
 
-          {activeSection === "tickets" && !showTicketDetailsPage && (
+          {activeSection === "tickets" && (
+            <div style={{ display: showTicketDetailsPage ? "none" : "block" }}>
             <>
               {showTicketsPlaceholder ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "280px", width: "100%" }}>
@@ -11999,6 +12002,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </>
               )}
             </>
+            </div>
           )}
 
           {activeSection === "reports" && (
