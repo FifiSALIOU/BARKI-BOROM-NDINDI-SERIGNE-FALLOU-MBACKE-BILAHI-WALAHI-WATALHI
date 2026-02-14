@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { getMe } from "./services/auth.ts";
+import { useToken } from "./hooks/useToken.ts";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import UserDashboard from "./pages/UserDashboard";
@@ -9,13 +11,7 @@ import DSIDashboard from "./pages/DSIDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
-  const [token, setToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem("token");
-    } catch {
-      return null;
-    }
-  });
+  const [token, setToken] = useToken();
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,12 +24,7 @@ function App() {
         
         // Si pas de rôle en localStorage, le récupérer depuis l'API
         if (!role) {
-          fetch("http://localhost:8000/auth/me", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-            .then((res) => res.json())
+          getMe(token)
             .then((userData) => {
               if (userData.role && userData.role.name) {
                 localStorage.setItem("userRole", userData.role.name);
