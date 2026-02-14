@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -20,14 +21,19 @@ router = APIRouter()
 
 @router.get("/register-info", response_model=schemas.RegisterInfo)
 def get_register_info(db: Session = Depends(get_db)):
-    """Retourne l'id du rôle Utilisateur pour l'inscription publique (sans auth)."""
+    """Retourne l'id du rôle Utilisateur et la liste des agences pour l'inscription publique (sans auth)."""
     role = db.query(models.Role).filter(models.Role.name == "Utilisateur").first()
     if not role:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Registration is not available",
         )
-    return schemas.RegisterInfo(default_role_id=role.id)
+    # Liste des agences (départements actifs) pour le formulaire d'inscription
+    result = db.execute(
+        text("SELECT name FROM departments WHERE is_active = TRUE ORDER BY name ASC")
+    )
+    agencies = [row[0] for row in result.fetchall()]
+    return schemas.RegisterInfo(default_role_id=role.id, agencies=agencies)
 
 
 @router.post("/register", response_model=schemas.UserRead)

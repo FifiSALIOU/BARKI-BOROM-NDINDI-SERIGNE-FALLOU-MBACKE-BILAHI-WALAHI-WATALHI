@@ -22,6 +22,7 @@ class RoleRead(RoleBase):
 class RegisterInfo(BaseModel):
     """Info pour l'inscription publique (rôle Utilisateur par défaut)."""
     default_role_id: int
+    agencies: List[str] = []  # Liste des noms d'agences (départements actifs) pour le formulaire d'inscription
 
 
 class UserBase(BaseModel):
