@@ -5,8 +5,6 @@
 
 import { Clock, TrendingUp } from "lucide-react";
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -77,49 +75,82 @@ export function ReportsSection(props: ReportsSectionProps) {
     selectedReport,
     setSelectedReport,
     showGenerateReport,
-    setShowGenerateReport,
-    showOutputFormat,
-    setShowOutputFormat,
-    outputFormat,
-    setOutputFormat,
-    reportType,
-    setReportType,
-    reportPeriodFrom,
-    setReportPeriodFrom,
-    reportPeriodTo,
-    setReportPeriodTo,
-    reportFilters,
-    setReportFilters,
-    allTickets,
-    technicians,
-    metrics,
-    userInfo,
-    colors,
-    statusColors,
-    priorityColors,
+    showOutputFormat: _showOutputFormat,
+    setShowOutputFormat: _setShowOutputFormat,
+    outputFormat: _outputFormat,
+    setOutputFormat: _setOutputFormat,
+    reportType: _reportType,
+    setReportType: _setReportType,
+    reportPeriodFrom: _reportPeriodFrom,
+    setReportPeriodFrom: _setReportPeriodFrom,
+    reportPeriodTo: _reportPeriodTo,
+    setReportPeriodTo: _setReportPeriodTo,
+    reportFilters: _reportFilters,
+    setReportFilters: _setReportFilters,
+    allTickets: _allTickets,
+    technicians: _technicians,
+    metrics: _metrics,
+    userInfo: _userInfo,
+    colors: _colors,
+    statusColors: _statusColors,
+    priorityColors: _priorityColors,
     prepareWeeklyTicketsData,
     prepareMonthlyEvolutionData,
     preparePriorityData,
     prepareStatusData,
     prepareAgencyAnalysisData,
     prepareTechnicianPerformanceData,
-    prepareAgencyData,
-    prepareTimeSeriesData,
-    prepareStatusEvolutionData,
-    preparePriorityEvolutionData,
-    prepareDayOfWeekData,
-    prepareHourlyData,
-    prepareSatisfactionData,
-    getMostFrequentProblems,
-    getProblematicApplications,
-    getRecurringTicketsHistory,
-    exportToPDF,
-    exportToExcel,
-    viewDetailedReport,
-    getReportName,
+    prepareAgencyData: _prepareAgencyData,
+    prepareTimeSeriesData: _prepareTimeSeriesData,
+    prepareStatusEvolutionData: _prepareStatusEvolutionData,
+    preparePriorityEvolutionData: _preparePriorityEvolutionData,
+    prepareDayOfWeekData: _prepareDayOfWeekData,
+    prepareHourlyData: _prepareHourlyData,
+    prepareSatisfactionData: _prepareSatisfactionData,
+    getMostFrequentProblems: _getMostFrequentProblems,
+    getProblematicApplications: _getProblematicApplications,
+    getRecurringTicketsHistory: _getRecurringTicketsHistory,
+    exportToPDF: _exportToPDF,
+    exportToExcel: _exportToExcel,
+    viewDetailedReport: _viewDetailedReport,
+    getReportName: _getReportName,
     CustomLabel,
-    reopenedTicketsCount = 0,
+    reopenedTicketsCount: _reopenedTicketsCount = 0,
   } = props;
+  void _showOutputFormat;
+  void _setShowOutputFormat;
+  void _outputFormat;
+  void _setOutputFormat;
+  void _reportType;
+  void _setReportType;
+  void _reportPeriodFrom;
+  void _setReportPeriodFrom;
+  void _reportPeriodTo;
+  void _setReportPeriodTo;
+  void _reportFilters;
+  void _setReportFilters;
+  void _allTickets;
+  void _technicians;
+  void _metrics;
+  void _userInfo;
+  void _colors;
+  void _statusColors;
+  void _priorityColors;
+  void _prepareAgencyData;
+  void _prepareTimeSeriesData;
+  void _prepareStatusEvolutionData;
+  void _preparePriorityEvolutionData;
+  void _prepareDayOfWeekData;
+  void _prepareHourlyData;
+  void _prepareSatisfactionData;
+  void _getMostFrequentProblems;
+  void _getProblematicApplications;
+  void _getRecurringTicketsHistory;
+  void _exportToPDF;
+  void _exportToExcel;
+  void _viewDetailedReport;
+  void _getReportName;
+  void _reopenedTicketsCount;
 
   return (
     <>
@@ -259,7 +290,7 @@ export function ReportsSection(props: ReportsSectionProps) {
                       return <Cell key={`cell-${index}`} fill={pieColors[entry.name] ?? "#999"} />;
                     })}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} formatter={(value: number, _name: string, props: { payload: { percentage: number } }) => [`${value} (${props.payload.percentage}%)`, _name]} />
+                  <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} formatter={(value: number, _name: string, props: any) => [`${value} (${props?.payload?.percentage ?? 0}%)`, _name]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -273,7 +304,7 @@ export function ReportsSection(props: ReportsSectionProps) {
                       return <Cell key={`cell-${index}`} fill={pieColors[entry.name] ?? "#999"} />;
                     })}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} formatter={(value: number, _name: string, props: { payload: { percentage: number } }) => [`${value} (${props.payload.percentage}%)`, _name]} />
+                  <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} formatter={(value: number, _name: string, props: any) => [`${value} (${props?.payload?.percentage ?? 0}%)`, _name]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -318,7 +349,7 @@ export function ReportsSection(props: ReportsSectionProps) {
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis dataKey="technicien" stroke="#6B7280" style={{ fontSize: "12px" }} />
                         <YAxis domain={[0, 60]} ticks={[0, 15, 30, 45, 60]} stroke="#6B7280" style={{ fontSize: "12px" }} />
-                        <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} content={({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => (active && payload?.length ? (
+                        <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }} content={({ active, payload, label }: any) => (active && payload?.length ? (
                           <div style={{ backgroundColor: "white", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "8px 12px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
                             <div style={{ color: "#111827", marginBottom: "4px" }}>{label}</div>
                             <div style={{ color: "#FF9500" }}>Résolus : {payload[0].value}</div>
