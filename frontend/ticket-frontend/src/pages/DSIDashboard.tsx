@@ -411,6 +411,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (path === "/dashboard/dsi/actifs") return "actifs";
     if (path === "/dashboard/dsi/types") return "types";
     if (path === "/dashboard/dsi/categories") return "categories";
+    if (path === "/dashboard/dsi/parametres/priorites") return "priorites";
     if (path === "/dashboard/dsi/tickets") return "tickets";
     if (path === "/dashboard/dsi/departements") return "departements";
     if (path === "/dashboard/dsi") return "dashboard";
@@ -6393,27 +6394,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Catégories</div>
           </div>
         )}
-        {userRole === "Admin" && (
-          <div 
-            onClick={() => navigate(`${getRoutePrefix()}/parametres/priorites`)}
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "12px", 
-              padding: "10px", 
-              cursor: "pointer",
-              color: "white",
-              borderRadius: "4px",
-              background: activeSection === "priorites" ? "hsl(25, 95%, 53%)" : "transparent",
-              marginBottom: "8px"
-            }}
-          >
-            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Flag size={18} color={activeSection === "priorites" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
-            </div>
-            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Priorités</div>
-          </div>
-        )}
         {userRole !== "Admin" && (
           <div 
             onClick={() => navigate(`${getRoutePrefix()}/types`)}
@@ -6454,6 +6434,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <FolderTree size={18} color={activeSection === "categories" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
             </div>
             <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Catégories</div>
+          </div>
+        )}
+        {(userRole === "DSI" || userRole === "Admin") && (
+          <div 
+            onClick={() => navigate(`${getRoutePrefix()}/parametres/priorites`)}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              padding: "10px", 
+              cursor: "pointer",
+              color: "white",
+              borderRadius: "4px",
+              background: activeSection === "priorites" ? "hsl(25, 95%, 53%)" : "transparent",
+              marginBottom: "8px"
+            }}
+          >
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Flag size={18} color={activeSection === "priorites" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+            </div>
+            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Priorités</div>
           </div>
         )}
         {userRole !== "Admin" && (
