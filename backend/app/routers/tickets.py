@@ -1033,8 +1033,12 @@ def get_ticket_comments(
         .all()
     )
     # Si le créateur du ticket consulte : masquer les commentaires internes (technique)
+    # sauf pour DSI, Adjoint DSI, Secrétaire DSI, Technicien et Admin : ils voient tous les commentaires (y compris internes) dans la section Commentaires
     if ticket.creator_id == current_user.id:
-        comments = [c for c in comments if c.type != models.CommentType.TECHNIQUE]
+        role = db.query(models.Role).filter(models.Role.id == current_user.role_id).first()
+        role_name = role.name if role else None
+        if role_name not in ("DSI", "Adjoint DSI", "Secrétaire DSI", "Technicien", "Admin"):
+            comments = [c for c in comments if c.type != models.CommentType.TECHNIQUE]
     return comments
 
 
@@ -1683,11 +1687,14 @@ def get_ticket_history(
         .order_by(models.TicketHistory.changed_at.desc())
         .all()
     )
-    # Si le créateur consulte : masquer les entrées de commentaires internes
-    if is_creator:
+    # Si le créateur consulte : masquer les entrées de commentaires internes, sauf pour DSI, Adjoint DSI, Secrétaire DSI, Technicien, Admin (ils voient tous les commentaires dans l'historique)
+    role = db.query(models.Role).filter(models.Role.id == current_user.role_id).first()
+    role_name = role.name if role else None
+    creator_sees_internal = is_creator and role_name in ("DSI", "Adjoint DSI", "Secrétaire DSI", "Technicien", "Admin")
+    if is_creator and not creator_sees_internal:
         history = [h for h in history if not (h.reason and h.reason.startswith("Commentaire (interne):"))]
     else:
-        # Pour l'équipe DSI : afficher "Commentaire: ..." sans "(interne)"
+        # Afficher "Commentaire: ..." sans "(interne)" pour une lecture plus claire
         for h in history:
             if h.reason and h.reason.startswith("Commentaire (interne):"):
                 h.reason = "Commentaire: " + h.reason[len("Commentaire (interne): "):]
