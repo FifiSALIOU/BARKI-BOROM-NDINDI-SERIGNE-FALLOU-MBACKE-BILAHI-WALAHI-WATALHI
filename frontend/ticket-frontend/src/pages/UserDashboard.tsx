@@ -570,6 +570,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
   const [ticketComments, setTicketComments] = useState<TicketComment[]>([]);
   const [detailCommentText, setDetailCommentText] = useState("");
+  const [commentModalTicketId, setCommentModalTicketId] = useState<string | null>(null);
+  const [modalCommentText, setModalCommentText] = useState("");
   const [showTicketDetailsPage, setShowTicketDetailsPage] = useState<boolean>(false);
   const [resumedFlags, setResumedFlags] = useState<Record<string, boolean>>({});
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<Ticket | null>(null);
@@ -1014,8 +1016,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
     }
   }
 
-  async function handleAddCommentFromDetails(ticketId: string) {
-    const content = detailCommentText.trim();
+  async function handleAddCommentFromDetails(ticketId: string, contentOverride?: string) {
+    const content = (contentOverride !== undefined ? contentOverride : detailCommentText).trim();
     if (!content) {
       alert("Veuillez entrer un commentaire");
       return;
@@ -1036,6 +1038,10 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       });
       if (res.ok) {
         setDetailCommentText("");
+        if (contentOverride !== undefined) {
+          setModalCommentText("");
+          setCommentModalTicketId(null);
+        }
         await loadTicketComments(ticketId);
         await loadTicketHistory(ticketId);
         alert("Commentaire ajouté avec succès");
@@ -2408,7 +2414,38 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     const isBlocked = blockedStatuses.includes(ticketDetails.status) || isAssigned;
                     const noActionsAvailable = isBlocked && ticketDetails.status !== "resolu" && ticketDetails.status !== "retraite";
                     if (noActionsAvailable) {
-                      return <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>;
+                      return (
+                        <>
+                          <span style={{ fontStyle: "italic" }}>Aucune action disponible pour ce ticket</span>
+                          <button
+                            onClick={() => {
+                              setCommentModalTicketId(ticketDetails.id);
+                              setModalCommentText("");
+                            }}
+                            disabled={loading}
+                            style={{
+                              padding: "10px 20px",
+                              backgroundColor: "#e5e7eb",
+                              color: "black",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px"
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#d1d5db"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#e5e7eb"; }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Ajouter un commentaire
+                          </button>
+                        </>
+                      );
                     }
                     if (ticketDetails.status === "resolu" || ticketDetails.status === "retraite") {
                       return null;
@@ -4708,6 +4745,66 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   style={{ flex: 1, padding: "10px 16px", backgroundColor: "#ef4444", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", color: "white" }}
                 >
                   Oui
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal pour ajouter un commentaire (utilisateur) */}
+        {commentModalTicketId && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+            pointerEvents: "auto"
+          }}>
+            <div style={{
+              background: "white",
+              padding: "24px",
+              borderRadius: "8px",
+              maxWidth: "500px",
+              width: "90%"
+            }}>
+              <h3 style={{ marginBottom: "12px", fontSize: "18px", fontWeight: "600", color: "#111827" }}>Ajouter un commentaire</h3>
+              <textarea
+                value={modalCommentText}
+                onChange={(e) => setModalCommentText(e.target.value)}
+                placeholder="Entrez votre commentaire..."
+                style={{
+                  width: "100%",
+                  minHeight: "100px",
+                  padding: "8px",
+                  marginTop: "12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  resize: "vertical"
+                }}
+              />
+              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                <button
+                  onClick={() => handleAddCommentFromDetails(commentModalTicketId, modalCommentText.trim())}
+                  disabled={loading || !modalCommentText.trim()}
+                  style={{ flex: 1, padding: "10px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: loading || !modalCommentText.trim() ? "not-allowed" : "pointer", opacity: loading || !modalCommentText.trim() ? 0.7 : 1 }}
+                >
+                  Ajouter
+                </button>
+                <button
+                  onClick={() => {
+                    setCommentModalTicketId(null);
+                    setModalCommentText("");
+                  }}
+                  style={{ flex: 1, padding: "10px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                >
+                  Annuler
                 </button>
               </div>
             </div>
