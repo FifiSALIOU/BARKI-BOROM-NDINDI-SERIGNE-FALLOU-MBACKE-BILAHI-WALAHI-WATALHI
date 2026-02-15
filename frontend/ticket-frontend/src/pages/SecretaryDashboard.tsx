@@ -4402,6 +4402,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         <div 
           onClick={() => {
             if (roleName === "Adjoint DSI") {
+              setShowTicketDetailsPage(false);
+              setTicketDetails(null);
+              setTicketHistory([]);
+              setTicketComments([]);
+              setDetailCommentText("");
+              setSelectedTicket(null);
               setStatusFilter("all");
               navigate("/dashboard/adjoint/tickets");
             } else {
