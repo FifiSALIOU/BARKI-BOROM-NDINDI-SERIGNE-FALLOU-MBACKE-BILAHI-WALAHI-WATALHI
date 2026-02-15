@@ -6866,7 +6866,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {activeSection === "actifs"
+              {activeSection === "notifications"
+                ? "Notifications"
+                : activeSection === "actifs"
                 ? "Gestion des Actifs"
                 : activeSection === "roles"
                 ? "Gestion des rôles"
@@ -6909,7 +6911,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               marginLeft: 0,
               textAlign: "left"
             }}>
-              {activeSection === "actifs"
+              {activeSection === "notifications"
+                ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
+                : activeSection === "actifs"
                 ? "Gérez l'inventaire des équipements informatiques"
                 : activeSection === "roles"
                 ? "Créez, modifiez et gérez les rôles et permissions"
