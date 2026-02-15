@@ -1147,6 +1147,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         if (ticket) {
           setSelectedNotificationTicketDetails(ticket);
           await loadTicketHistory(selectedNotificationTicket);
+          await loadTicketComments(selectedNotificationTicket);
         } else {
           // Si le ticket sélectionné n'est pas dans la liste, le charger séparément
           try {
@@ -1159,6 +1160,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               const data = await res.json();
               setSelectedNotificationTicketDetails(data);
               await loadTicketHistory(selectedNotificationTicket);
+              await loadTicketComments(selectedNotificationTicket);
             }
           } catch (err) {
             console.error("Erreur chargement détails ticket sélectionné:", err);
@@ -1209,6 +1211,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             setSelectedNotificationTicketDetails(data);
             if (selectedNotificationTicket) {
               await loadTicketHistory(selectedNotificationTicket);
+              await loadTicketComments(selectedNotificationTicket);
             }
           }
         } catch (err) {
@@ -5655,6 +5658,136 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                           )}
                         </div>
 
+                        {/* Section Commentaires - au-dessus de Historique */}
+                        <div style={{
+                          marginTop: "24px",
+                          padding: "16px",
+                          background: "white",
+                          borderRadius: "8px",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                            <MessageCircle size={20} color="hsl(25, 95%, 53%)" strokeWidth={2} />
+                            <strong style={{ fontSize: "15px", color: "#111827" }}>
+                              Commentaires ({myComments.length})
+                            </strong>
+                          </div>
+                          {myComments.length === 0 ? (
+                            <p style={{ color: "#6b7280", fontStyle: "italic", marginBottom: "16px", fontSize: "14px" }}>
+                              Aucun commentaire pour ce ticket
+                            </p>
+                          ) : (
+                            <div style={{ marginBottom: "16px" }}>
+                              {myComments.map((c) => (
+                                <div
+                                  key={c.id}
+                                  style={{
+                                    padding: "12px 14px",
+                                    background: "#f8f9fa",
+                                    borderRadius: "8px",
+                                    border: "1px solid #e5e7eb",
+                                    marginBottom: "8px"
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                                    <div style={{
+                                      width: "32px",
+                                      height: "32px",
+                                      borderRadius: "50%",
+                                      background: "rgba(255, 122, 27, 0.2)",
+                                      color: "hsl(25, 95%, 53%)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: "12px",
+                                      fontWeight: 600,
+                                      flexShrink: 0
+                                    }}>
+                                      {getInitials(c.user?.full_name || "Utilisateur")}
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                      <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
+                                        {c.user?.full_name || "Utilisateur"}
+                                      </span>
+                                      <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                                        {new Date(c.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })} à {new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div style={{ fontSize: "14px", color: "#111827", marginLeft: "42px" }}>{c.content}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                              <div style={{
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "50%",
+                                background: "rgba(255, 122, 27, 0.2)",
+                                color: "hsl(25, 95%, 53%)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "13px",
+                                fontWeight: 600
+                              }}>
+                                {userInfo?.full_name ? getInitials(userInfo.full_name) : "?"}
+                              </div>
+                              <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
+                                {userInfo?.full_name || "Utilisateur"}
+                              </span>
+                            </div>
+                            <textarea
+                              value={detailCommentText}
+                              onChange={(e) => setDetailCommentText(e.target.value)}
+                              placeholder="Ajouter un commentaire..."
+                              style={{
+                                width: "100%",
+                                minHeight: "80px",
+                                padding: "10px 12px",
+                                marginBottom: "12px",
+                                border: "1px solid #e5e7eb",
+                                borderRadius: "8px",
+                                fontSize: "14px",
+                                resize: "vertical",
+                                background: "#f8f9fa"
+                              }}
+                            />
+                            <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", cursor: "pointer", fontSize: "13px", color: "#6b7280" }}>
+                              <input
+                                type="checkbox"
+                                checked={detailCommentInternal}
+                                onChange={(e) => setDetailCommentInternal(e.target.checked)}
+                                style={{ width: 16, height: 16 }}
+                              />
+                              <Lock size={14} color="hsl(25, 95%, 53%)" />
+                              Commentaire interne (visible par l'équipe uniquement)
+                            </label>
+                            <button
+                              onClick={() => handleAddCommentFromDetails(selectedNotificationTicketDetails.id)}
+                              disabled={loading || !detailCommentText.trim()}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                padding: "10px 20px",
+                                background: detailCommentText.trim() && !loading ? "hsl(25, 95%, 53%)" : "#d1d5db",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "8px",
+                                cursor: detailCommentText.trim() && !loading ? "pointer" : "not-allowed",
+                                fontSize: "14px",
+                                fontWeight: 600
+                              }}
+                            >
+                              <Send size={16} />
+                              Envoyer
+                            </button>
+                          </div>
+                        </div>
+
                         <div style={{ marginTop: "24px", marginBottom: "16px" }}>
                           <strong>Historique :</strong>
                           <div style={{ marginTop: "8px" }}>
@@ -6535,6 +6668,136 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                           </p>
                         </div>
                       )}
+                    </div>
+
+                    {/* Section Commentaires - au-dessus de Historique */}
+                    <div style={{
+                      marginTop: "24px",
+                      padding: "16px",
+                      background: "white",
+                      borderRadius: "8px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                        <MessageCircle size={20} color="hsl(25, 95%, 53%)" strokeWidth={2} />
+                        <strong style={{ fontSize: "15px", color: "#111827" }}>
+                          Commentaires ({myComments.length})
+                        </strong>
+                      </div>
+                      {myComments.length === 0 ? (
+                        <p style={{ color: "#6b7280", fontStyle: "italic", marginBottom: "16px", fontSize: "14px" }}>
+                          Aucun commentaire pour ce ticket
+                        </p>
+                      ) : (
+                        <div style={{ marginBottom: "16px" }}>
+                          {myComments.map((c) => (
+                            <div
+                              key={c.id}
+                              style={{
+                                padding: "12px 14px",
+                                background: "#f8f9fa",
+                                borderRadius: "8px",
+                                border: "1px solid #e5e7eb",
+                                marginBottom: "8px"
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                                <div style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  background: "rgba(255, 122, 27, 0.2)",
+                                  color: "hsl(25, 95%, 53%)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  flexShrink: 0
+                                }}>
+                                  {getInitials(c.user?.full_name || "Utilisateur")}
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>
+                                    {c.user?.full_name || "Utilisateur"}
+                                  </span>
+                                  <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                                    {new Date(c.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })} à {new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                  </span>
+                                </div>
+                              </div>
+                              <div style={{ fontSize: "14px", color: "#111827", marginLeft: "42px" }}>{c.content}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                          <div style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            background: "rgba(255, 122, 27, 0.2)",
+                            color: "hsl(25, 95%, 53%)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "13px",
+                            fontWeight: 600
+                          }}>
+                            {userInfo?.full_name ? getInitials(userInfo.full_name) : "?"}
+                          </div>
+                          <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
+                            {userInfo?.full_name || "Utilisateur"}
+                          </span>
+                        </div>
+                        <textarea
+                          value={detailCommentText}
+                          onChange={(e) => setDetailCommentText(e.target.value)}
+                          placeholder="Ajouter un commentaire..."
+                          style={{
+                            width: "100%",
+                            minHeight: "80px",
+                            padding: "10px 12px",
+                            marginBottom: "12px",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            resize: "vertical",
+                            background: "#f8f9fa"
+                          }}
+                        />
+                        <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", cursor: "pointer", fontSize: "13px", color: "#6b7280" }}>
+                          <input
+                            type="checkbox"
+                            checked={detailCommentInternal}
+                            onChange={(e) => setDetailCommentInternal(e.target.checked)}
+                            style={{ width: 16, height: 16 }}
+                          />
+                          <Lock size={14} color="hsl(25, 95%, 53%)" />
+                          Commentaire interne (visible par l'équipe uniquement)
+                        </label>
+                        <button
+                          onClick={() => handleAddCommentFromDetails(selectedNotificationTicketDetails.id)}
+                          disabled={loading || !detailCommentText.trim()}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "10px 20px",
+                            background: detailCommentText.trim() && !loading ? "hsl(25, 95%, 53%)" : "#d1d5db",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            cursor: detailCommentText.trim() && !loading ? "pointer" : "not-allowed",
+                            fontSize: "14px",
+                            fontWeight: 600
+                          }}
+                        >
+                          <Send size={16} />
+                          Envoyer
+                        </button>
+                      </div>
                     </div>
 
                     <div style={{ marginTop: "24px", marginBottom: "16px" }}>
